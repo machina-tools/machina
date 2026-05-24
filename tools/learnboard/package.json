@@ -1,0 +1,13 @@
+{
+  "name": "@machina-tools/learnboard",
+  "version": "1.0.0",
+  "description": "Web UI for your AI learning layer — view and edit lessons, patterns, and workflow observations",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["learnboard", "ai-learning", "knowledge-base", "markdown"],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "dependencies": {}
+}

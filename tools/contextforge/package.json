@@ -1,0 +1,15 @@
+{
+  "name": "@machina-tools/contextforge",
+  "version": "1.0.0",
+  "description": "Auto-collect git diff, SSH logs and last BugCapture into a single AI briefing prompt",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["context", "ai-briefing", "git", "ssh", "debugging"],
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "ssh2": "^1.17.0"
+  }
+}
