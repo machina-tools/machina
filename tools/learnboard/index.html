@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LearnBoard</title>
+  <style>
+    :root {
+      --bg: #0f1523;
+      --surface: #19243a;
+      --surface2: #243050;
+      --border: #2d3a56;
+      --teal: #14b8a6;
+      --teal-dim: #0d9488;
+      --teal-bg: rgba(20,184,166,.08);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --muted: #64748b;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --green: #34d399;
+      --purple: #a78bfa;
+      --mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { display: flex; align-items: center; gap: 12px; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    header h1 { font-size: 18px; font-weight: 700; }
+    header h1 span { color: var(--teal); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .status-dot.ok { background: var(--green); }
+    .header-sub { color: var(--text-dim); font-size: 12px; margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+    .stats-row { display: flex; gap: 0; border-bottom: 1px solid var(--border); background: var(--surface); overflow-x: auto; }
+    .stat { display: flex; flex-direction: column; align-items: center; padding: 12px 22px; border-right: 1px solid var(--border); flex-shrink: 0; }
+    .stat-num { font-size: 22px; font-weight: 800; color: var(--teal); line-height: 1; }
+    .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; text-align: center; }
+
+    .tab-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); overflow-x: auto; }
+    .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 600; color: var(--text-dim); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: all .15s; }
+    .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+    .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+    .content { flex: 1; padding: 20px 24px; overflow-y: auto; }
+    .pane { display: none; }
+    .pane.active { display: block; }
+
+    .chart-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; flex: 1; min-width: 200px; }
+    .chart-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-dim); margin-bottom: 12px; }
+    .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+    .bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .bar-label { width: 100px; color: var(--text-dim); flex-shrink: 0; text-align: right; }
+    .bar-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 18px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+    .bar-count { width: 28px; text-align: right; color: var(--text-dim); font-size: 11px; }
+    .timeline { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+    .tl-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .tl-date { font-size: 11px; color: var(--muted); white-space: nowrap; font-family: var(--mono); }
+    .tl-text { font-size: 12px; color: var(--text); line-height: 1.4; }
+
+    .table-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .search-input { padding: 6px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; outline: none; width: 220px; transition: border-color .15s; }
+    .search-input:focus { border-color: var(--teal); }
+    .btn { padding: 7px 14px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-primary { background: var(--teal); color: #0f1523; }
+    .btn-primary:hover { background: var(--teal-dim); }
+    .btn-ghost { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
+    .btn-ghost:hover { background: var(--teal-bg); }
+    .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(248,113,113,.3); }
+    .btn-danger:hover { background: rgba(248,113,113,.1); }
+    .btn-sm { padding: 4px 9px; font-size: 11px; }
+    .ml-auto { margin-left: auto; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+    table.editor { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.editor th { background: var(--surface2); color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: .5px; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    table.editor td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    table.editor tr:last-child td { border-bottom: none; }
+    table.editor tr:hover td { background: var(--teal-bg); }
+    table.editor td.actions-cell { white-space: nowrap; width: 80px; text-align: right; }
+
+    .cell-view { cursor: pointer; min-height: 20px; line-height: 1.4; color: var(--text); }
+    .cell-view:hover { color: var(--teal); }
+    .cell-view.empty { color: var(--muted); font-style: italic; }
+    .cell-edit { display: none; }
+    .cell-edit input, .cell-edit textarea, .cell-edit select {
+      width: 100%; background: var(--bg); border: 1px solid var(--teal); border-radius: 4px;
+      color: var(--text); font-size: 12px; padding: 4px 6px; outline: none; font-family: inherit;
+    }
+    .cell-edit textarea { min-height: 60px; resize: vertical; }
+    td.editing .cell-view { display: none; }
+    td.editing .cell-edit { display: block; }
+
+    .voto-badge { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+    .voto-si { background: rgba(52,211,153,.15); color: var(--green); }
+    .voto-no { background: rgba(251,191,36,.12); color: var(--yellow); }
+    .voto-bocciato { background: rgba(248,113,113,.12); color: var(--red); }
+    .impl-si { color: var(--green); }
+    .impl-no { color: var(--muted); }
+    .impl-parz { color: var(--yellow); }
+
+    .save-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 24px; display: flex; align-items: center; gap: 12px; transform: translateY(100%); transition: transform .2s; z-index: 100; }
+    .save-bar.visible { transform: translateY(0); }
+    .save-info { color: var(--text-dim); font-size: 12px; }
+    .save-info strong { color: var(--yellow); }
+
+    .raw-wrap { position: relative; }
+    .raw-area { width: 100%; height: calc(100vh - 220px); background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 12px; line-height: 1.6; padding: 16px; resize: none; outline: none; }
+    .raw-area:focus { border-color: var(--teal); }
+    .copy-raw { position: absolute; top: 10px; right: 10px; }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .notice { padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 12px; }
+    .notice-err { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); color: var(--red); }
+    .notice-ok { background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.2); color: var(--green); }
+    .hidden { display: none !important; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="status-dot" id="statusDot"></div>
+  <h1>Learn<span>Board</span></h1>
+  <div class="header-sub">
+    <span>AI learning system — LEARNING.md</span>
+    <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;" onclick="reload()">↻ Reload</button>
+  </div>
+</header>
+
+<div class="stats-row" id="statsRow">
+  <div class="stat"><div class="stat-num">—</div><div class="stat-label">Tools built</div></div>
+  <div class="stat"><div class="stat-num">—</div><div class="stat-label">Lessons</div></div>
+  <div class="stat"><div class="stat-num">—</div><div class="stat-label">Suggestions</div></div>
+  <div class="stat"><div class="stat-num">—%</div><div class="stat-label">Implemented</div></div>
+  <div class="stat"><div class="stat-num">—</div><div class="stat-label">AI Observations</div></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('requests')">📋 User Requests</button>
+  <button class="tab-btn" onclick="switchTab('suggestions')">💡 Suggestions</button>
+  <button class="tab-btn" onclick="switchTab('lessons')">🎓 Lessons</button>
+  <button class="tab-btn" onclick="switchTab('observations')">🧠 AI Observations</button>
+  <button class="tab-btn" onclick="switchTab('raw')">Raw LEARNING.md</button>
+</div>
+
+<div class="content">
+  <div id="notice" class="hidden"></div>
+
+  <!-- DASHBOARD -->
+  <div class="pane active" id="pane-dashboard">
+    <div class="chart-row" id="chartRow">
+      <div class="chart-card" style="min-width:260px;">
+        <div class="chart-title">Suggestion votes</div>
+        <div class="bar-chart" id="voteChart"></div>
+      </div>
+      <div class="chart-card" style="flex:2;min-width:300px;">
+        <div class="chart-title">Recent lessons learned</div>
+        <div class="timeline" id="lessonsTimeline"></div>
+      </div>
+      <div class="chart-card" style="flex:2;min-width:300px;">
+        <div class="chart-title">Recent requests</div>
+        <div class="timeline" id="requestsTimeline"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE PANES -->
+  <div class="pane" id="pane-requests"></div>
+  <div class="pane" id="pane-suggestions"></div>
+  <div class="pane" id="pane-lessons"></div>
+  <div class="pane" id="pane-observations"></div>
+
+  <!-- RAW -->
+  <div class="pane" id="pane-raw">
+    <div class="raw-wrap">
+      <button class="btn btn-ghost btn-sm copy-raw" onclick="copyRaw()">Copy</button>
+      <textarea class="raw-area" id="rawArea" readonly></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar" id="saveBar">
+  <span class="save-info">You have <strong id="changesCount">0</strong> unsaved changes</span>
+  <button class="btn btn-primary" onclick="saveAll()">💾 Save to LEARNING.md</button>
+  <button class="btn btn-ghost" onclick="discardChanges()">Discard</button>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:4331';
+let DATA = null;
+let PENDING = {};
+
+const VOTO_COLS = { suggestions: 2 };
+const IMPL_COLS = { suggestions: 3 };
+
+async function init() {
+  try {
+    const r = await fetch(`${API}/health`);
+    if (r.ok) document.getElementById('statusDot').className = 'status-dot ok';
+  } catch {
+    document.getElementById('statusDot').className = 'status-dot';
+    showNotice('err', 'Bridge offline. Start LearnBoard from your terminal.');
+    return;
+  }
+  await reload();
+}
+
+async function reload() {
+  try {
+    const r = await fetch(`${API}/data`);
+    DATA = await r.json();
+    updateStats(DATA.stats);
+    renderDashboard();
+    renderAllTables();
+    const rr = await fetch(`${API}/raw`);
+    document.getElementById('rawArea').value = await rr.text();
+  } catch (e) {
+    showNotice('err', 'Load error: ' + e.message);
+  }
+}
+
+function updateStats(s) {
+  if (!s) return;
+  const row = document.getElementById('statsRow');
+  const nums = row.querySelectorAll('.stat-num');
+  const vals = [s.totalTools, s.totalLessons, s.totalSuggestions, s.implementedPct + '%', s.totalObservations];
+  nums.forEach((el, i) => el.textContent = vals[i]);
+}
+
+function renderDashboard() {
+  if (!DATA) return;
+  const s = DATA.stats;
+
+  const voteChart = document.getElementById('voteChart');
+  const total = s.totalSuggestions;
+  const bars = [
+    { label: 'Approved (4-5)', count: s.votes.yes, color: 'var(--green)' },
+    { label: 'Warm (1-3)', count: s.votes.warm, color: 'var(--yellow)' },
+    { label: 'Negative (< 1)', count: s.votes.no, color: 'var(--text-dim)' },
+    { label: 'Rejected (✗)', count: s.votes.rejected, color: 'var(--red)' },
+    { label: 'Implemented', count: s.implemented, color: 'var(--teal)' },
+  ];
+  voteChart.innerHTML = bars.map(b => `
+    <div class="bar-row">
+      <span class="bar-label">${b.label}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${total ? Math.round(b.count/total*100) : 0}%;background:${b.color}"></div>
+      </div>
+      <span class="bar-count">${b.count}</span>
+    </div>`).join('');
+
+  const les = DATA.sections.lessons;
+  document.getElementById('lessonsTimeline').innerHTML = les && les.rows.length
+    ? les.rows.slice(-8).reverse().map(row => `
+        <div class="tl-item">
+          <span class="tl-text">${escHtml(row[1] || '')}</span>
+        </div>`).join('')
+    : '<div style="color:var(--muted);font-size:12px">No lessons recorded</div>';
+
+  const req = DATA.sections.requests;
+  document.getElementById('requestsTimeline').innerHTML = req && req.rows.length
+    ? req.rows.slice(-6).reverse().map(row => `
+        <div class="tl-item">
+          <span class="tl-date">${row[0] || ''}</span>
+          <span class="tl-text">${escHtml(row[1] || '')}</span>
+        </div>`).join('')
+    : '<div style="color:var(--muted);font-size:12px">No requests recorded</div>';
+}
+
+const SECTION_KEYS = ['requests', 'suggestions', 'lessons', 'observations'];
+
+function renderAllTables() {
+  for (const key of SECTION_KEYS) renderTable(key);
+}
+
+function renderTable(key) {
+  const sec = DATA.sections[key];
+  if (!sec) return;
+  const pane = document.getElementById(`pane-${key}`);
+  const rows = PENDING[key] || sec.rows;
+
+  const votCol = VOTO_COLS[key];
+  const implCol = IMPL_COLS[key];
+
+  pane.innerHTML = `
+    <div class="table-toolbar">
+      <input class="search-input" placeholder="Search..." oninput="filterTable('${key}', this.value)">
+      <button class="btn btn-ghost" onclick="addRow('${key}')">+ Add row</button>
+      <span class="ml-auto" style="color:var(--text-dim);font-size:11px">${rows.length} rows</span>
+    </div>
+    <div class="table-wrap">
+      <table class="editor" id="tbl-${key}">
+        <thead><tr>
+          ${sec.headers.map(h => `<th>${escHtml(h)}</th>`).join('')}
+          <th>Actions</th>
+        </tr></thead>
+        <tbody id="tbody-${key}">
+          ${rows.map((row, i) => renderRow(key, sec.headers, row, i, votCol, implCol)).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderRow(key, headers, row, idx, votCol, implCol) {
+  const cells = headers.map((h, ci) => {
+    const val = row[ci] || '';
+    let display = escHtml(val);
+
+    if (ci === votCol && val) {
+      const v = parseFloat(val);
+      const cls = val === '✗' ? 'bocciato' : v >= 4 ? 'si' : v >= 2 ? 'no' : '';
+      display = `<span class="voto-badge voto-${cls}">${escHtml(val)}</span>`;
+    }
+    if (ci === implCol && val) {
+      const v = val.toLowerCase();
+      const cls = (v === 'yes' || v === 'sì' || v === 'si') ? 'si' : (v === 'partial' || v === 'parziale') ? 'parz' : 'no';
+      display = `<span class="impl-${cls}">${escHtml(val)}</span>`;
+    }
+
+    const isLong = val.length > 60;
+    const inputEl = isLong
+      ? `<textarea class="cell-input">${escHtml(val)}</textarea>`
+      : `<input type="text" class="cell-input" value="${escAttr(val)}">`;
+
+    return `<td data-key="${key}" data-row="${idx}" data-col="${ci}" onclick="startEdit(this)">
+      <div class="cell-view${val ? '' : ' empty'}">${display || '—'}</div>
+      <div class="cell-edit">${inputEl}</div>
+    </td>`;
+  }).join('');
+
+  return `<tr id="row-${key}-${idx}">
+    ${cells}
+    <td class="actions-cell">
+      <button class="btn btn-danger btn-sm" onclick="deleteRow('${key}', ${idx})">✕</button>
+    </td>
+  </tr>`;
+}
+
+function startEdit(td) {
+  td.classList.add('editing');
+  const input = td.querySelector('.cell-input');
+  if (input) { input.focus(); input.select && input.select(); }
+  input.addEventListener('blur', () => commitEdit(td), { once: true });
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEdit(td); });
+}
+
+function commitEdit(td) {
+  const key = td.dataset.key;
+  const rowIdx = parseInt(td.dataset.row);
+  const colIdx = parseInt(td.dataset.col);
+  const input = td.querySelector('.cell-input');
+  const newVal = input.value;
+
+  if (!PENDING[key]) PENDING[key] = DATA.sections[key].rows.map(r => [...r]);
+  PENDING[key][rowIdx][colIdx] = newVal;
+
+  td.classList.remove('editing');
+  markDirty();
+  renderTable(key);
+}
+
+function cancelEdit(td) {
+  td.classList.remove('editing');
+}
+
+function addRow(key) {
+  if (!PENDING[key]) PENDING[key] = DATA.sections[key].rows.map(r => [...r]);
+  const headers = DATA.sections[key].headers;
+  PENDING[key].push(headers.map(() => ''));
+  markDirty();
+  renderTable(key);
+}
+
+function deleteRow(key, idx) {
+  if (!PENDING[key]) PENDING[key] = DATA.sections[key].rows.map(r => [...r]);
+  PENDING[key].splice(idx, 1);
+  markDirty();
+  renderTable(key);
+}
+
+function filterTable(key, q) {
+  const tbody = document.getElementById(`tbody-${key}`);
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll('tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = q && !text.includes(q.toLowerCase()) ? 'none' : '';
+  });
+}
+
+function markDirty() {
+  const count = Object.keys(PENDING).length;
+  document.getElementById('changesCount').textContent = count;
+  document.getElementById('saveBar').classList.toggle('visible', count > 0);
+}
+
+async function saveAll() {
+  try {
+    const r = await fetch(`${API}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updates: PENDING }),
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error);
+    PENDING = {};
+    markDirty();
+    showNotice('ok', 'LEARNING.md saved with automatic backup.');
+    await reload();
+  } catch (e) {
+    showNotice('err', 'Save error: ' + e.message);
+  }
+}
+
+function discardChanges() {
+  PENDING = {};
+  markDirty();
+  renderAllTables();
+}
+
+const TAB_ORDER = ['dashboard', 'requests', 'suggestions', 'lessons', 'observations', 'raw'];
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', TAB_ORDER[i] === name));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+  document.getElementById(`pane-${name}`).classList.add('active');
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+
+function showNotice(type, msg) {
+  const el = document.getElementById('notice');
+  el.className = `notice notice-${type}`;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  if (type === 'ok') setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+async function copyRaw() {
+  const text = document.getElementById('rawArea').value;
+  await navigator.clipboard.writeText(text);
+  showNotice('ok', 'LEARNING.md copied to clipboard.');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BugCapture</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3d;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --ok: #4ade80;
+    --warn: #fb923c;
+    --error: #f87171;
+    --radius: 10px;
+    --font: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 48px;
+    gap: 28px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    max-width: 780px;
+  }
+  .logo {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+  .card {
+    width: 100%;
+    max-width: 780px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .rec-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 0;
+  }
+  .rec-btn {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color .2s, background .2s, transform .1s;
+    flex-shrink: 0;
+  }
+  .rec-btn:hover { background: rgba(56,189,248,.08); transform: scale(1.04); }
+  .rec-btn.recording { border-color: var(--error); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,.4); }
+    50% { box-shadow: 0 0 0 12px rgba(248,113,113,0); }
+  }
+  .rec-btn svg { width: 38px; height: 38px; }
+  .rec-label { font-size: 0.82rem; color: var(--muted); text-align: center; }
+  .rec-label strong { color: var(--text); display: block; font-size: 1rem; margin-bottom: 4px; }
+  .timer {
+    font-size: 2.2rem;
+    font-family: var(--mono);
+    color: var(--error);
+    letter-spacing: 0.06em;
+    display: none;
+  }
+  .timer.visible { display: block; }
+
+  .options-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .opt-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .opt-chip input { display: none; }
+  .opt-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,.07); }
+  .opt-chip .dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid currentColor; }
+  .opt-chip.active .dot { background: currentColor; }
+
+  .status-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 100%;
+  }
+  .status-bar.visible { display: flex; }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-text { font-size: 0.85rem; color: var(--muted); }
+  .status-text strong { color: var(--text); }
+
+  .results { display: none; flex-direction: column; gap: 18px; }
+  .results.visible { display: flex; }
+
+  .section-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .transcript-box {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    max-height: 160px;
+    overflow-y: auto;
+    color: var(--text);
+  }
+  .transcript-box:empty::before { content: 'No audio detected'; color: var(--muted); font-style: italic; }
+
+  .frames-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .frame-thumb {
+    flex-shrink: 0;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+    transition: border-color .2s;
+  }
+  .frame-thumb:hover { border-color: var(--accent); }
+  .frame-thumb img { display: block; height: 90px; width: auto; }
+  .frame-ts {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(0,0,0,.65);
+    font-size: 0.68rem;
+    font-family: var(--mono);
+    color: #fff;
+    text-align: center;
+    padding: 2px 0;
+  }
+
+  .lightbox {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 999;
+    align-items: center; justify-content: center;
+    cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 90vh; border-radius: 6px; }
+
+  .dl-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity .2s, transform .1s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-secondary { background: var(--accent2); color: #fff; }
+  .btn-ghost {
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.09); }
+
+  .meta-row {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .meta-row span strong { color: var(--text); }
+
+  .whisper-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(74,222,128,.08);
+    border: 1px solid rgba(74,222,128,.2);
+    color: var(--ok);
+  }
+  .whisper-badge.loading { color: var(--warn); border-color: rgba(251,146,60,.2); background: rgba(251,146,60,.08); }
+
+  .err-box {
+    display: none;
+    background: rgba(248,113,113,.08);
+    border: 1px solid rgba(248,113,113,.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.84rem;
+    color: var(--error);
+  }
+  .err-box.visible { display: block; }
+
+  .loglens-panel {
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  .loglens-toggle-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.83rem; color: var(--muted);
+  }
+  .toggle-switch {
+    position: relative; width: 36px; height: 20px; flex-shrink: 0;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--border); border-radius: 20px;
+    cursor: pointer; transition: background .2s;
+  }
+  .toggle-track::after {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; top: 3px; left: 3px;
+    background: #fff; border-radius: 50%;
+    transition: transform .2s;
+  }
+  .toggle-switch input:checked + .toggle-track { background: var(--ok); }
+  .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); }
+  .loglens-config {
+    display: none;
+    margin-top: 12px;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .loglens-config.visible { display: flex; }
+  .loglens-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .loglens-select, .loglens-input {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .loglens-select:focus, .loglens-input:focus { border-color: var(--ok); }
+  .loglens-select { min-width: 180px; }
+  .loglens-input { flex: 1; min-width: 220px; font-family: var(--mono); }
+  .loglens-status {
+    font-size: 0.75rem;
+    display: flex; align-items: center; gap: 6px;
+    color: var(--muted);
+  }
+  .loglens-status .dot-live {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .loglens-status.connected .dot-live { background: var(--ok); }
+  .loglens-status.error .dot-live { background: var(--error); }
+
+  .log-result-box {
+    background: rgba(0,0,0,.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: #a3e8a3;
+    max-height: 200px;
+    overflow-y: auto;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎥</div>
+  <div>
+    <h1>Bug<span>Capture</span></h1>
+    <div class="subtitle">Record screen + audio → AI-ready bug report</div>
+  </div>
+</header>
+
+<div class="card">
+  <div class="rec-area">
+    <button class="rec-btn" id="recBtn" onclick="toggleRec()" title="Start/Stop recording">
+      <svg id="iconIdle" viewBox="0 0 24 24" fill="currentColor" style="color:var(--accent)">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+        <polygon points="10,8 10,16 17,12" fill="currentColor"/>
+      </svg>
+      <svg id="iconRec" viewBox="0 0 24 24" fill="currentColor" style="color:var(--error);display:none">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+        <rect x="8.5" y="8.5" width="7" height="7" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <div class="timer" id="timer">00:00</div>
+
+    <div class="rec-label">
+      <strong id="recLabelMain">Click to record</strong>
+      <span id="recLabelSub">Screen + microphone · press again to stop</span>
+    </div>
+
+    <div class="options-row">
+      <label class="opt-chip active" id="chipMic">
+        <input type="checkbox" id="captureMic" checked>
+        <span class="dot"></span> Microphone
+      </label>
+      <label class="opt-chip active" id="chipScreen">
+        <input type="checkbox" id="captureScreen" checked>
+        <span class="dot"></span> Screen
+      </label>
+    </div>
+  </div>
+
+  <!-- LogLens -->
+  <div class="loglens-panel">
+    <div class="loglens-toggle-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="loglensEnabled" onchange="onLoglensToggle()">
+        <span class="toggle-track"></span>
+      </label>
+      <span>Capture server logs <strong id="loglensLabel" style="color:var(--ok)"></strong></span>
+      <span class="loglens-status" id="loglensStatus">
+        <span class="dot-live"></span>
+        <span id="loglensStatusText">Inactive</span>
+      </span>
+    </div>
+    <div class="loglens-config" id="loglensConfig">
+      <div class="loglens-row">
+        <select class="loglens-select" id="loglensServer" onchange="onServerChange()">
+          <option value="">— Select server —</option>
+        </select>
+        <input class="loglens-input" id="loglensLogPath" type="text" placeholder="/var/log/apache2/error.log">
+        <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.78rem" onclick="testLoglens()">⚡ Test</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <div class="status-text" id="statusText">Processing...</div>
+  </div>
+
+  <div class="err-box" id="errBox"></div>
+</div>
+
+<!-- Results -->
+<div class="card results" id="results">
+
+  <div class="meta-row" id="metaRow"></div>
+
+  <div>
+    <div class="section-title">Audio transcript</div>
+    <div class="transcript-box" id="transcriptBox"></div>
+  </div>
+
+  <div id="logResultSection" style="display:none">
+    <div class="section-title">Server log (<span id="logLineCount">0</span> lines)</div>
+    <div class="log-result-box" id="logResultBox"></div>
+  </div>
+
+  <div>
+    <div class="section-title">Screenshots (<span id="frameCount">0</span>)</div>
+    <div class="frames-strip" id="framesStrip"></div>
+  </div>
+
+  <div>
+    <div class="section-title">Download report</div>
+    <div class="dl-row">
+      <button class="btn btn-primary" id="dlBase64" onclick="downloadBase64()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        .md with embedded images
+      </button>
+      <button class="btn btn-secondary" id="dlZip" onclick="downloadZip()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        .md + folder (.zip)
+      </button>
+      <button class="btn btn-ghost" onclick="resetUI()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        New recording
+      </button>
+    </div>
+    <div style="margin-top:10px;font-size:0.75rem;color:var(--muted)">
+      <strong style="color:var(--text)">.md embed</strong>: images as base64 in the file — upload directly to Claude / ChatGPT-4o<br>
+      <strong style="color:var(--text)">.md + folder</strong>: separate images in frames/ — for text-only AI or lightweight sharing
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="Screenshot">
+</div>
+
+<!-- Whisper status -->
+<div style="font-size:0.75rem;color:var(--muted);display:flex;align-items:center;gap:8px;">
+  Transcription:
+  <span class="whisper-badge loading" id="whisperBadge">
+    <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="currentColor" opacity=".6"/></svg>
+    Loading model...
+  </span>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:4327';
+
+let mediaRecorder = null;
+let chunks = [];
+let timerInterval = null;
+let startTime = null;
+let currentSession = null;
+
+let activeLoglensId = null;
+
+async function loadServers() {
+  try {
+    const r = await fetch(`${API}/connections`);
+    const servers = await r.json();
+    const sel = document.getElementById('loglensServer');
+    servers.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.label || s.host} (${s.username}@${s.host})`;
+      opt.dataset.logPath = (s.logPaths && s.logPaths[0]) || s.logPath || '';
+      sel.appendChild(opt);
+    });
+  } catch {}
+}
+loadServers();
+
+function onLoglensToggle() {
+  const enabled = document.getElementById('loglensEnabled').checked;
+  document.getElementById('loglensConfig').classList.toggle('visible', enabled);
+}
+
+function onServerChange() {
+  const sel = document.getElementById('loglensServer');
+  const opt = sel.selectedOptions[0];
+  if (opt && opt.dataset.logPath) {
+    document.getElementById('loglensLogPath').value = opt.dataset.logPath;
+  }
+}
+
+async function testLoglens() {
+  const connId = document.getElementById('loglensServer').value;
+  if (!connId) return;
+  const st = document.getElementById('loglensStatus');
+  const stTxt = document.getElementById('loglensStatusText');
+  stTxt.textContent = 'Testing...';
+  st.className = 'loglens-status';
+  try {
+    const r = await fetch(`${API}/loglens/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ connectionId: connId }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      st.className = 'loglens-status connected';
+      stTxt.textContent = `Connected (${d.ms}ms)`;
+    } else {
+      st.className = 'loglens-status error';
+      stTxt.textContent = d.error || 'Error';
+    }
+  } catch (e) {
+    st.className = 'loglens-status error';
+    stTxt.textContent = 'Server unreachable';
+  }
+}
+
+async function startLoglens() {
+  const enabled = document.getElementById('loglensEnabled').checked;
+  if (!enabled) return null;
+  const connectionId = document.getElementById('loglensServer').value;
+  const logPath = document.getElementById('loglensLogPath').value.trim();
+  if (!connectionId || !logPath) return null;
+  const loglensId = `ll_${Date.now()}`;
+  try {
+    const r = await fetch(`${API}/loglens/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ connectionId, logPath, loglensId }),
+    });
+    const d = await r.json();
+    if (d.ok) {
+      const st = document.getElementById('loglensStatus');
+      const stTxt = document.getElementById('loglensStatusText');
+      st.className = 'loglens-status connected';
+      stTxt.textContent = 'Capturing logs...';
+      return loglensId;
+    }
+  } catch {}
+  return null;
+}
+
+async function pollWhisper() {
+  try {
+    const r = await fetch(`${API}/health`);
+    const d = await r.json();
+    const badge = document.getElementById('whisperBadge');
+    if (d.whisperReady) {
+      badge.className = 'whisper-badge';
+      badge.innerHTML = `<svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" fill="currentColor"/></svg> Ready`;
+    } else {
+      setTimeout(pollWhisper, 3000);
+    }
+  } catch {
+    setTimeout(pollWhisper, 5000);
+  }
+}
+pollWhisper();
+
+document.getElementById('chipMic').addEventListener('click', () => {
+  const cb = document.getElementById('captureMic');
+  const chip = document.getElementById('chipMic');
+  setTimeout(() => chip.classList.toggle('active', cb.checked), 0);
+});
+document.getElementById('chipScreen').addEventListener('click', () => {
+  const cb = document.getElementById('captureScreen');
+  const chip = document.getElementById('chipScreen');
+  setTimeout(() => chip.classList.toggle('active', cb.checked), 0);
+});
+
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+async function toggleRec() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopRec();
+  } else {
+    await startRec();
+  }
+}
+
+async function startRec() {
+  setError('');
+  const wantMic = document.getElementById('captureMic').checked;
+  const wantScreen = document.getElementById('captureScreen').checked;
+
+  if (!wantScreen && !wantMic) {
+    setError('Select at least one source (screen or microphone).');
+    return;
+  }
+
+  try {
+    let stream;
+    if (wantScreen) {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 5 },
+        audio: true,
+      });
+      if (wantMic) {
+        try {
+          const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const ctx = new AudioContext();
+          const dest = ctx.createMediaStreamDestination();
+          if (screenStream.getAudioTracks().length) {
+            ctx.createMediaStreamSource(new MediaStream(screenStream.getAudioTracks())).connect(dest);
+          }
+          ctx.createMediaStreamSource(new MediaStream(micStream.getAudioTracks())).connect(dest);
+          stream = new MediaStream([...screenStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+        } catch {
+          stream = screenStream;
+        }
+      } else {
+        stream = screenStream;
+      }
+    } else {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+
+    chunks = [];
+    const opts = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+      ? { mimeType: 'video/webm;codecs=vp9,opus' }
+      : MediaRecorder.isTypeSupported('video/webm')
+        ? { mimeType: 'video/webm' }
+        : {};
+
+    mediaRecorder = new MediaRecorder(stream, opts);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    mediaRecorder.onstop = onRecordingStop;
+    mediaRecorder.start(1000);
+
+    activeLoglensId = await startLoglens();
+
+    document.getElementById('recBtn').classList.add('recording');
+    document.getElementById('iconIdle').style.display = 'none';
+    document.getElementById('iconRec').style.display = 'block';
+    document.getElementById('recLabelMain').textContent = 'Recording...';
+    document.getElementById('recLabelSub').textContent = 'Click to stop';
+    document.getElementById('timer').classList.add('visible');
+    document.getElementById('results').classList.remove('visible');
+
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('timer').textContent = fmtTime(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    stream.getTracks().forEach(t => t.addEventListener('ended', () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') stopRec();
+    }));
+
+  } catch (e) {
+    if (e.name !== 'NotAllowedError') setError(`Capture error: ${e.message}`);
+  }
+}
+
+function stopRec() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+  mediaRecorder?.stream?.getTracks()?.forEach(t => t.stop());
+  clearInterval(timerInterval);
+}
+
+async function onRecordingStop() {
+  document.getElementById('recBtn').classList.remove('recording');
+  document.getElementById('iconIdle').style.display = 'block';
+  document.getElementById('iconRec').style.display = 'none';
+  document.getElementById('recLabelMain').textContent = 'Click to record';
+  document.getElementById('recLabelSub').textContent = 'Screen + microphone · press again to stop';
+  document.getElementById('timer').classList.remove('visible');
+
+  const blob = new Blob(chunks, { type: 'video/webm' });
+  if (blob.size < 1000) { setError('Recording too short or empty.'); return; }
+
+  showStatus(`Processing video (${(blob.size / 1024 / 1024).toFixed(1)} MB)...`);
+
+  try {
+    const headers = { 'Content-Type': 'application/octet-stream' };
+    if (activeLoglensId) headers['x-loglens-id'] = activeLoglensId;
+    const res = await fetch(`${API}/process`, { method: 'POST', headers, body: blob });
+    activeLoglensId = null;
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Server error');
+    hideStatus();
+    showResults(data);
+  } catch (e) {
+    activeLoglensId = null;
+    hideStatus();
+    setError(`Processing error: ${e.message}`);
+  }
+
+  document.getElementById('loglensStatus').className = 'loglens-status';
+  document.getElementById('loglensStatusText').textContent = 'Inactive';
+}
+
+function showResults(data) {
+  currentSession = data;
+  const dur = data.duration || 0;
+  const dMin = Math.floor(dur / 60);
+  const dSec = Math.round(dur % 60);
+  const durStr = dMin > 0 ? `${dMin}m ${dSec}s` : `${dSec}s`;
+
+  document.getElementById('metaRow').innerHTML =
+    `<span><strong>${data.frameCount}</strong> screenshots</span>
+     <span>Duration: <strong>${durStr}</strong></span>
+     <span>Session: <strong style="font-family:var(--mono);font-size:0.75rem">${data.sessionId}</strong></span>`;
+
+  document.getElementById('transcriptBox').textContent = data.transcript || '';
+  document.getElementById('frameCount').textContent = data.frameCount;
+
+  const strip = document.getElementById('framesStrip');
+  strip.innerHTML = '';
+  (data.frames || []).forEach((f, i) => {
+    const div = document.createElement('div');
+    div.className = 'frame-thumb';
+    const min = Math.floor(f.ts / 60);
+    const sec = f.ts % 60;
+    const label = min > 0 ? `${min}m${sec}s` : `${sec}s`;
+    div.innerHTML = `<img src="data:image/jpeg;base64,${f.b64}" alt="Frame ${i+1}">
+                     <div class="frame-ts">${label}</div>`;
+    div.onclick = () => openLightbox(f.b64);
+    strip.appendChild(div);
+  });
+
+  const logSec = document.getElementById('logResultSection');
+  if (data.logData && data.logData.lineCount > 0) {
+    document.getElementById('logLineCount').textContent = data.logData.lineCount;
+    document.getElementById('logResultBox').textContent = data.logData.lines.join('\n');
+    logSec.style.display = 'block';
+  } else {
+    logSec.style.display = 'none';
+  }
+
+  document.getElementById('results').classList.add('visible');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildMarkdownBase64(data) {
+  const dur = data.duration || 0;
+  const dMin = Math.floor(dur / 60);
+  const dSec = Math.round(dur % 60);
+  const now = new Date().toLocaleString('en-US');
+  let md = `# BugCapture Report\n\n`;
+  md += `**Date**: ${now}  \n`;
+  md += `**Duration**: ${dMin > 0 ? dMin + 'm ' : ''}${dSec}s  \n`;
+  md += `**Session ID**: ${data.sessionId}\n\n`;
+  md += `---\n\n`;
+  md += `## Audio Transcript\n\n`;
+  md += data.transcript ? data.transcript : '_No audio detected_';
+  md += `\n\n`;
+  if (data.logData && data.logData.lineCount > 0) {
+    md += `---\n\n## Server Log (captured during recording)\n\n`;
+    md += `**Server**: ${data.logData.serverLabel}  \n**Log**: \`${data.logData.logPath}\`\n\n\`\`\`\n`;
+    md += data.logData.lines.join('\n');
+    md += `\n\`\`\`\n\n`;
+  }
+  md += `---\n\n## Sequential Screenshots\n\n`;
+  (data.frames || []).forEach((f, i) => {
+    const min = Math.floor(f.ts / 60);
+    const sec = f.ts % 60;
+    const label = min > 0 ? `${min}m ${sec}s` : `${sec}s`;
+    md += `### Screenshot ${i + 1} — ${label}\n\n`;
+    md += `![Screenshot ${i + 1}](data:image/jpeg;base64,${f.b64})\n\n`;
+  });
+  return md;
+}
+
+function downloadBase64() {
+  if (!currentSession) return;
+  const md = buildMarkdownBase64(currentSession);
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentSession.sessionId}_embed.md`;
+  a.click();
+}
+
+async function downloadZip() {
+  if (!currentSession) return;
+  const btn = document.getElementById('dlZip');
+  btn.disabled = true;
+  btn.textContent = 'Generating ZIP...';
+  try {
+    const res = await fetch(`${API}/zip/${currentSession.sessionId}`);
+    if (!res.ok) throw new Error('ZIP error');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${currentSession.sessionId}.zip`;
+    a.click();
+  } catch (e) {
+    setError(`ZIP error: ${e.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> .md + folder (.zip)`;
+  }
+}
+
+function showStatus(msg) {
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').innerHTML = msg;
+  bar.classList.add('visible');
+}
+function hideStatus() { document.getElementById('statusBar').classList.remove('visible'); }
+function setError(msg) {
+  const box = document.getElementById('errBox');
+  box.textContent = msg;
+  box.classList.toggle('visible', !!msg);
+}
+function resetUI() {
+  currentSession = null;
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('errBox').classList.remove('visible');
+  document.getElementById('timer').textContent = '00:00';
+  chunks = [];
+}
+function openLightbox(b64) {
+  document.getElementById('lightboxImg').src = `data:image/jpeg;base64,${b64}`;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+</body>
+</html>
