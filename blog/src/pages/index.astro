@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
+const posts = await Astro.glob('./posts/*.md');
+const sorted = posts.sort((a, b) =>
+  new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime()
+);
+---
+<BaseLayout title="Machina Blog — AI debugging tools and workflows">
+  <div class="index">
+    <div class="index-header">
+      <h1>Machina Blog</h1>
+      <p>Tools, workflows, and lessons learned building AI-powered developer tools.</p>
+    </div>
+
+    <div class="posts">
+      {sorted.map(post => {
+        const slug = post.file.split('/posts/')[1].replace('.md', '');
+        return (
+          <a href={`${base}/posts/${slug}`} class="post-card">
+            <div class="post-card-top">
+              {post.frontmatter.tag && <span class="tag">{post.frontmatter.tag}</span>}
+              <time>{post.frontmatter.date}</time>
+            </div>
+            <h2>{post.frontmatter.title}</h2>
+            <p>{post.frontmatter.description}</p>
+            <span class="read-more">Read →</span>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .index {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  .index-header {
+    margin-bottom: 48px;
+  }
+
+  .index-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+  }
+
+  .index-header p {
+    font-size: 1rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .posts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .post-card {
+    display: block;
+    padding: 28px 0;
+    border-top: 1px solid var(--border);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+
+  .post-card:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post-card:hover h2 { color: var(--teal-light); }
+
+  .post-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(20,184,166,0.1);
+    border: 1px solid rgba(20,184,166,0.2);
+    color: var(--teal);
+  }
+
+  time {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .post-card h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    transition: color 0.15s;
+    line-height: 1.3;
+  }
+
+  .post-card p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .read-more {
+    font-size: 0.82rem;
+    color: var(--teal-light);
+    font-weight: 500;
+  }
+</style>

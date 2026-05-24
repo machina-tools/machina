@@ -1,0 +1,184 @@
+---
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<BaseLayout title={`${frontmatter.title} — Machina Blog`} description={frontmatter.description}>
+  <article class="post">
+    <div class="post-header">
+      <a href={`${base}/`} class="back-link">← All posts</a>
+      {frontmatter.tag && <span class="tag">{frontmatter.tag}</span>}
+      <h1>{frontmatter.title}</h1>
+      <p class="post-description">{frontmatter.description}</p>
+      <div class="post-meta">
+        <time>{frontmatter.date}</time>
+        {frontmatter.readingTime && <span>· {frontmatter.readingTime} min read</span>}
+      </div>
+    </div>
+
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  .post-header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+    text-decoration: none;
+  }
+  .back-link:hover { color: var(--teal-light); text-decoration: none; }
+
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(20,184,166,0.1);
+    border: 1px solid rgba(20,184,166,0.25);
+    color: var(--teal);
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 16px;
+    margin-top: 12px;
+  }
+
+  .post-description {
+    font-size: 1.05rem;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 20px;
+  }
+
+  .post-meta {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .prose {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #cbd5e1;
+  }
+
+  .prose :global(h2) {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 48px;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .prose :global(h3) {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+
+  .prose :global(p) {
+    margin-bottom: 20px;
+  }
+
+  .prose :global(a) {
+    color: var(--teal-light);
+    text-decoration: underline;
+    text-decoration-color: rgba(56,189,248,0.3);
+  }
+  .prose :global(a:hover) {
+    text-decoration-color: var(--teal-light);
+  }
+
+  .prose :global(code) {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    color: #a5f3eb;
+  }
+
+  .prose :global(pre) {
+    background: #0d111b !important;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    margin: 24px 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  .prose :global(pre code) {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  .prose :global(blockquote) {
+    border-left: 3px solid var(--teal);
+    margin: 24px 0;
+    padding: 4px 0 4px 20px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .prose :global(ul), .prose :global(ol) {
+    margin: 16px 0 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .prose :global(li) {
+    color: #cbd5e1;
+  }
+
+  .prose :global(hr) {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  .prose :global(strong) {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .prose :global(img) {
+    max-width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 24px 0;
+  }
+</style>

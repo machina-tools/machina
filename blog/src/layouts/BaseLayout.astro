@@ -1,0 +1,108 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+const { title, description = 'Machina — tools that make AI fix your bugs', ogImage } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  {ogImage && <meta property="og:image" content={ogImage}>}
+  <meta property="og:site_name" content="Machina">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3d;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --teal: #14b8a6;
+      --teal-light: #38bdf8;
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    a { color: var(--teal-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-logo span { color: var(--teal); }
+    .nav-sep { color: var(--muted); font-size: 0.85rem; }
+    .nav-section { color: var(--muted); font-size: 0.85rem; }
+    .nav-right { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+    .nav-link { font-size: 0.85rem; color: var(--muted); }
+    .nav-link:hover { color: var(--text); text-decoration: none; }
+
+    main { flex: 1; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="https://machina.chat" class="nav-logo">Mach<span>ina</span></a>
+    <span class="nav-sep">/</span>
+    <span class="nav-section">Blog</span>
+    <div class="nav-right">
+      <a href={`${base}/`} class="nav-link">All posts</a>
+      <a href="https://github.com/machina-tools/machina" class="nav-link">GitHub</a>
+    </div>
+  </nav>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer>
+    <p>© {new Date().getFullYear()} Machina · <a href="https://machina.chat">machina.chat</a> · <a href="https://github.com/machina-tools/machina">GitHub</a></p>
+  </footer>
+</body>
+</html>
