@@ -579,9 +579,12 @@
     <div class="section-label">Stay in the loop</div>
     <h2>New tools, lessons, and AI workflow insights</h2>
     <p>No spam. Monthly digest of what was built, what was learned, and what's coming next.</p>
-    <form class="nl-form" onsubmit="handleSubscribe(event)">
-      <input type="email" id="nlEmail" placeholder="your@email.com" required>
+    <form class="nl-form" method="POST" action="https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_ckaeJU-t0nAn8FNfAFgvVW9hS1KpSrA9DaE02ZAQ5AIZnzWHb6C2sNme7xqNWzEjIOdNsgN6EXhqoM-VVDLEt5sD7rNJ945jIjBQhNt8SuZvjv5Fvbv3t5-dJQcOi6CoDCbSOIkH5jDhALn2idBp4phZZKiX5W_hd68H0v3pF2VCIAf15-BO87YU23kXw==">
+      <input type="email" id="EMAIL" name="EMAIL" placeholder="your@email.com" required>
       <button type="submit" class="btn-lg btn-teal" style="padding:12px 24px;font-size:14px;">Subscribe →</button>
+      <input type="text" name="email_address_check" value="" style="display:none">
+      <input type="hidden" name="locale" value="it">
+      <input type="hidden" name="html_type" value="simple">
     </form>
     <p class="nl-note">No spam · Unsubscribe anytime · Built with Brevo</p>
   </div>
@@ -601,13 +604,6 @@
 </footer>
 
 <script>
-function handleSubscribe(e) {
-  e.preventDefault();
-  const email = document.getElementById('nlEmail').value;
-  // Placeholder — integrate Brevo API here
-  alert(`Grazie! ${email} aggiunto alla lista. (Integrazione Brevo da configurare)`);
-}
-
 // Smooth reveal on scroll
 if ('IntersectionObserver' in window) {
   const io = new IntersectionObserver(entries => {
