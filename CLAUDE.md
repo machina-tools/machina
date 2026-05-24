@@ -60,3 +60,4 @@ Setup: `bash setup.sh` dalla root del repo.
 3. **Aggiorna stato lancio** — dopo ogni sessione significativa aggiorna la checklist sopra
 4. **Blog-first** — ogni feature nuova o storia interessante merita un articolo
 5. **Mantieni la separazione** — le versioni in `Machina/tools/` sono indipendenti dagli originali in `Tools/`
+6. **Testa sempre prima di dichiarare done** — dopo ogni modifica verificare l'effetto reale: `curl` sul sito live per HTML, diff del file per codice locale, log Actions per deploy. Non dichiarare mai completato qualcosa senza aver visto la conferma concreta. Se il deploy è in corso aspettare e verificare l'output finale.
