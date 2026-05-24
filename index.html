@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Machina — AI tools that learn with you</title>
+  <meta name="description" content="Machina is an open-source suite of AI-powered developer tools that improve over time by learning your workflow. From bug capture to schema analysis — built by developers, for developers.">
+  <link rel="canonical" href="https://machina.chat">
+  <meta property="og:title" content="Machina — AI tools that learn with you">
+  <meta property="og:description" content="Open-source AI workflow tools that get smarter with every session. Built by a developer who uses them every day.">
+  <meta property="og:type" content="website">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #080d18;
+      --bg2: #0d1525;
+      --surface: #131f35;
+      --surface2: #1a2845;
+      --border: #1e3050;
+      --teal: #14b8a6;
+      --teal-dim: #0d9488;
+      --teal-glow: rgba(20,184,166,.15);
+      --text: #f0f4ff;
+      --text-dim: #8899bb;
+      --text-muted: #4a5a7a;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --green: #34d399;
+      --purple: #a78bfa;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; overflow-x: hidden; }
+    a { color: var(--teal); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { display: block; max-width: 100%; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; gap: 32px;
+      padding: 0 40px; height: 62px;
+      background: rgba(8,13,24,.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-weight: 800; font-size: 20px; color: var(--text); letter-spacing: -.5px; }
+    .nav-logo span { color: var(--teal); }
+    .nav-links { display: flex; gap: 24px; margin-left: auto; }
+    .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-dim); transition: color .15s; }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .nav-cta { padding: 7px 18px; background: var(--teal); color: #080d18; border-radius: 7px; font-weight: 700; font-size: 13px; transition: background .15s; }
+    .nav-cta:hover { background: var(--teal-dim); text-decoration: none; }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 110px 40px 100px;
+      text-align: center;
+    }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(20,184,166,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(20,184,166,.1); border: 1px solid rgba(20,184,166,.25);
+      color: var(--teal); font-size: 12px; font-weight: 600; padding: 4px 12px;
+      border-radius: 99px; margin-bottom: 28px; letter-spacing: .3px;
+    }
+    .hero-badge::before { content: '●'; font-size: 8px; }
+    h1 {
+      font-size: clamp(40px, 6vw, 72px); font-weight: 900;
+      line-height: 1.08; letter-spacing: -2px;
+      margin-bottom: 22px; max-width: 860px; margin-inline: auto;
+    }
+    h1 .accent { color: var(--teal); }
+    h1 .dim { color: var(--text-dim); }
+    .hero-sub {
+      font-size: clamp(16px, 2.2vw, 20px); color: var(--text-dim);
+      max-width: 600px; margin: 0 auto 40px; line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-lg {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 28px; border-radius: 9px; font-weight: 700; font-size: 15px;
+      cursor: pointer; border: none; transition: all .15s;
+    }
+    .btn-teal { background: var(--teal); color: #080d18; }
+    .btn-teal:hover { background: var(--teal-dim); text-decoration: none; }
+    .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-outline:hover { border-color: var(--teal); color: var(--teal); text-decoration: none; }
+    .hero-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); }
+
+    /* ── DIVIDER ── */
+    .section { padding: 80px 40px; max-width: 1200px; margin: 0 auto; }
+    .section-sm { padding: 60px 40px; max-width: 1200px; margin: 0 auto; }
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--teal); margin-bottom: 10px;
+    }
+    h2 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -.8px; margin-bottom: 14px; line-height: 1.15; }
+    .section-sub { font-size: 16px; color: var(--text-dim); max-width: 560px; line-height: 1.7; margin-bottom: 48px; }
+    .text-center { text-align: center; }
+    .mx-auto { margin-inline: auto; }
+
+    /* ── LEARNER HIGHLIGHT ── */
+    .learner-wrap {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
+    }
+    .learner-text h2 { margin-bottom: 18px; }
+    .learner-text p { color: var(--text-dim); line-height: 1.8; margin-bottom: 16px; }
+    .learner-stats { display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap; }
+    .lstat { display: flex; flex-direction: column; }
+    .lstat-num { font-size: 32px; font-weight: 800; color: var(--teal); line-height: 1; }
+    .lstat-label { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .learner-visual {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 24px; font-family: var(--mono); font-size: 12px;
+    }
+    .lv-header { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 16px; }
+    .lv-row { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .lv-row:last-child { border-bottom: none; }
+    .lv-tag { font-size: 10px; color: var(--teal); font-weight: 700; }
+    .lv-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+    .lv-meta { font-size: 10px; color: var(--text-muted); }
+
+    /* ── TOOLS GRID ── */
+    .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .tool-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      padding: 22px; transition: border-color .2s, transform .2s;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .tool-card:hover { border-color: var(--teal); transform: translateY(-2px); }
+    .tool-card-header { display: flex; align-items: flex-start; gap: 12px; }
+    .tool-icon { font-size: 28px; line-height: 1; flex-shrink: 0; }
+    .tool-name { font-size: 16px; font-weight: 700; color: var(--text); }
+    .tool-tagline { font-size: 12px; color: var(--teal); font-weight: 600; margin-top: 1px; }
+    .tool-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; flex: 1; }
+    .tool-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .badge-teal { background: rgba(20,184,166,.12); color: var(--teal); }
+    .badge-purple { background: rgba(167,139,250,.12); color: var(--purple); }
+    .badge-yellow { background: rgba(251,191,36,.1); color: var(--yellow); }
+    .badge-green { background: rgba(52,211,153,.1); color: var(--green); }
+
+    /* ── FEATURED: BUGCAPTURE ── */
+    .feature-wide {
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(20,184,166,.07) 100%);
+      border: 1px solid var(--border); border-radius: 16px;
+      padding: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+      align-items: center; margin-bottom: 48px;
+    }
+    .fw-label { font-size: 11px; font-weight: 700; color: var(--teal); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; }
+    .fw-title { font-size: clamp(22px, 3vw, 32px); font-weight: 800; letter-spacing: -.5px; margin-bottom: 14px; }
+    .fw-desc { font-size: 14px; color: var(--text-dim); line-height: 1.8; margin-bottom: 20px; }
+    .fw-steps { display: flex; flex-direction: column; gap: 12px; }
+    .fw-step { display: flex; gap: 12px; align-items: flex-start; }
+    .fw-num { width: 24px; height: 24px; border-radius: 50%; background: var(--teal); color: #080d18; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .fw-step-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .fw-step-text strong { color: var(--text); }
+    .fw-visual {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; font-family: var(--mono); font-size: 12px;
+    }
+    .fwv-bar { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+    .fwv-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .fwv-title { color: var(--text-dim); font-size: 11px; margin-left: 4px; }
+    .fwv-body { padding: 16px; }
+    .fwv-line { padding: 4px 0; border-bottom: 1px solid rgba(30,48,80,.5); font-size: 11px; }
+    .fwv-line:last-child { border-bottom: none; }
+    .fwv-key { color: var(--teal); margin-right: 6px; }
+    .fwv-val { color: var(--text-dim); }
+    .fwv-val.highlight { color: var(--text); }
+    .fwv-badge { display: inline-block; background: rgba(20,184,166,.15); color: var(--teal); font-size: 10px; padding: 1px 5px; border-radius: 3px; }
+
+    /* ── HOW IT WORKS ── */
+    .steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .step-num { font-size: 36px; font-weight: 900; color: rgba(20,184,166,.2); line-height: 1; margin-bottom: 12px; font-family: var(--mono); }
+    .step-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step-desc { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+
+    /* ── CONSULTING ── */
+    .consulting-wrap {
+      background: linear-gradient(135deg, var(--surface) 0%, var(--bg2) 100%);
+      border: 1px solid var(--border); border-radius: 16px;
+      padding: 56px; display: grid; grid-template-columns: 1fr auto; gap: 48px; align-items: center;
+    }
+    .consulting-title { font-size: clamp(24px, 3vw, 36px); font-weight: 800; letter-spacing: -.5px; margin-bottom: 14px; }
+    .consulting-desc { font-size: 15px; color: var(--text-dim); max-width: 520px; line-height: 1.8; margin-bottom: 24px; }
+    .services-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+    .service-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-dim); }
+    .service-item::before { content: '→'; color: var(--teal); font-weight: 700; }
+    .consulting-cta { display: flex; flex-direction: column; align-items: center; gap: 12px; white-space: nowrap; }
+
+    /* ── NEWSLETTER ── */
+    .newsletter-wrap {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 44px; text-align: center;
+    }
+    .newsletter-wrap h2 { margin-bottom: 10px; }
+    .newsletter-wrap p { color: var(--text-dim); margin-bottom: 28px; font-size: 15px; }
+    .nl-form { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .nl-form input {
+      padding: 12px 18px; background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 14px; outline: none;
+      width: 280px; transition: border-color .15s; font-family: var(--sans);
+    }
+    .nl-form input:focus { border-color: var(--teal); }
+    .nl-form input::placeholder { color: var(--text-muted); }
+    .nl-note { margin-top: 12px; font-size: 12px; color: var(--text-muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 20px; flex-wrap: wrap;
+    }
+    .footer-logo { font-weight: 800; font-size: 16px; }
+    .footer-logo span { color: var(--teal); }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 13px; color: var(--text-muted); transition: color .15s; }
+    .footer-links a:hover { color: var(--text); text-decoration: none; }
+    .footer-copy { font-size: 12px; color: var(--text-muted); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; gap: 16px; }
+      .nav-links { display: none; }
+      .hero { padding: 70px 20px 60px; }
+      .section, .section-sm { padding: 50px 20px; }
+      .learner-wrap, .feature-wide, .consulting-wrap { grid-template-columns: 1fr; gap: 28px; }
+      .steps-row { grid-template-columns: 1fr; }
+      .consulting-wrap { padding: 32px 24px; }
+      footer { flex-direction: column; align-items: flex-start; padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">mach<span>ina</span></div>
+  <div class="nav-links">
+    <a href="#learnboard">LearnBoard</a>
+    <a href="#tools">Tools</a>
+    <a href="#how">How it works</a>
+    <a href="#consulting">Consulting</a>
+    <a href="#">Blog</a>
+    <a href="https://github.com/machina-tools" target="_blank">GitHub ↗</a>
+  </div>
+  <a class="nav-cta btn-lg" href="#newsletter" style="padding:7px 18px;font-size:13px;">Get updates</a>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-badge">Open source · Free forever</div>
+  <h1>AI tools that<br><span class="accent">learn</span> with <span class="dim">you</span></h1>
+  <p class="hero-sub">
+    Machina is a suite of developer tools powered by AI — that actually improve over time
+    by tracking your workflow patterns, errors, and decisions session by session.
+  </p>
+  <div class="hero-actions">
+    <a href="https://github.com" target="_blank" class="btn-lg btn-teal">★ View on GitHub</a>
+    <a href="#tools" class="btn-lg btn-outline">See all tools →</a>
+  </div>
+  <p class="hero-note">MIT licensed · runs locally · no cloud required</p>
+</section>
+
+<!-- ── LEARNER SECTION ── -->
+<div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<div class="section learner-wrap">
+  <div class="learner-text">
+    <div class="section-label">The differentiator</div>
+    <h2>Your AI gets smarter<br>every session</h2>
+    <p>
+      Most AI tools forget everything when you close the tab. Machina uses a persistent
+      <strong>learning layer</strong> that records lessons learned, workflow patterns, and
+      preferences — and makes them available to the AI on the next session, automatically.
+    </p>
+    <p>
+      The result: an AI assistant that already knows you prefer offline-first tools, that palette
+      choices come from reference images, and that you never want decorative animations.
+      You stop repeating yourself. The AI stops making the same mistakes.
+    </p>
+    <div class="learner-stats">
+      <div class="lstat"><span class="lstat-num">22</span><span class="lstat-label">Lessons learned</span></div>
+      <div class="lstat"><span class="lstat-num">25</span><span class="lstat-label">Tools built</span></div>
+      <div class="lstat"><span class="lstat-num">50%</span><span class="lstat-label">Ideas shipped</span></div>
+    </div>
+  </div>
+  <div class="learner-visual">
+    <div class="lv-header">🧠 AI Learning Log — live</div>
+    <div class="lv-row">
+      <div class="lv-tag">LESSON #15</div>
+      <div class="lv-text">Always prefer local/free solutions — never propose paid APIs without exhausting local alternatives first.</div>
+      <div class="lv-meta">Derived from: Transcriber session · 2026-05-20</div>
+    </div>
+    <div class="lv-row">
+      <div class="lv-tag">LESSON #18</div>
+      <div class="lv-text">User prefers autonomous tools that find context on their own, not manual forms to fill.</div>
+      <div class="lv-meta">Derived from: ContextForge v2 redesign</div>
+    </div>
+    <div class="lv-row">
+      <div class="lv-tag">PATTERN</div>
+      <div class="lv-text">Every validated tool generates an implicit second need. Flag it without building it immediately.</div>
+      <div class="lv-meta">Observation · 2026-05-22</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── FEATURED: LEARNBOARD ── -->
+<div class="section" id="learnboard">
+  <div class="feature-wide" style="background:linear-gradient(135deg,var(--surface) 0%,rgba(167,139,250,.07) 100%);">
+    <div class="fw-visual">
+      <div class="fwv-bar">
+        <div class="fwv-dot" style="background:#f87171"></div>
+        <div class="fwv-dot" style="background:#fbbf24;margin-left:4px"></div>
+        <div class="fwv-dot" style="background:#34d399;margin-left:4px"></div>
+        <span class="fwv-title">LearnBoard — AI Learning System</span>
+      </div>
+      <div style="display:flex;border-bottom:1px solid var(--border);">
+        <div style="flex:1;padding:10px 14px;border-right:1px solid var(--border);text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--teal);font-family:var(--mono)">23</div>
+          <div style="font-size:10px;color:var(--text-muted)">Lessons</div>
+        </div>
+        <div style="flex:1;padding:10px 14px;border-right:1px solid var(--border);text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--purple);font-family:var(--mono)">25</div>
+          <div style="font-size:10px;color:var(--text-muted)">Tools</div>
+        </div>
+        <div style="flex:1;padding:10px 14px;border-right:1px solid var(--border);text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--yellow);font-family:var(--mono)">32</div>
+          <div style="font-size:10px;color:var(--text-muted)">Suggestions</div>
+        </div>
+        <div style="flex:1;padding:10px 14px;text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:var(--green);font-family:var(--mono)">50%</div>
+          <div style="font-size:10px;color:var(--text-muted)">Shipped</div>
+        </div>
+      </div>
+      <div style="font-family:var(--mono);">
+        <div style="display:grid;grid-template-columns:24px 1fr;gap:8px;padding:7px 12px;border-bottom:1px solid rgba(30,48,80,.5);color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">
+          <span>#</span><span>Lesson learned</span>
+        </div>
+        <div style="display:grid;grid-template-columns:24px 1fr;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(30,48,80,.5);">
+          <span style="color:var(--teal);font-weight:700;font-size:11px">15</span>
+          <span style="color:var(--text);line-height:1.4;font-size:11px">Always prefer local/free solutions — never propose paid APIs without exhausting local alternatives first.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:24px 1fr;gap:8px;padding:8px 12px;border-bottom:1px solid rgba(30,48,80,.5);">
+          <span style="color:var(--teal);font-weight:700;font-size:11px">18</span>
+          <span style="color:var(--text);line-height:1.4;font-size:11px">User prefers autonomous tools that find context on their own — not manual forms to fill in.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:24px 1fr;gap:8px;padding:8px 12px;">
+          <span style="color:var(--teal);font-weight:700;font-size:11px">23</span>
+          <span style="color:var(--text);line-height:1.4;font-size:11px">Always restart via the bash script that rebuilds nvm — <code style="color:var(--yellow)">nohup node</code> fails silently without nvm env.</span>
+        </div>
+      </div>
+      <div style="padding:9px 12px;background:rgba(167,139,250,.06);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:10px;color:var(--purple);font-family:var(--mono)">2 unsaved changes · backup enabled</span>
+        <span style="font-size:10px;font-weight:700;color:#fff;background:var(--purple);padding:3px 10px;border-radius:4px;">Save to CLAUDE.md</span>
+      </div>
+    </div>
+    <div>
+      <div class="fw-label" style="color:var(--purple)">🧠 The core innovation</div>
+      <div class="fw-title">Your AI's memory,<br>made visible and editable</div>
+      <p class="fw-desc">
+        LearnBoard is the interface to the layer that makes Machina unique. Every lesson the AI learns,
+        every pattern it recognizes, every workflow preference — stored in a structured file
+        and surfaced here as a living dashboard you can read, search, and edit in real time.
+      </p>
+      <div class="fw-steps">
+        <div class="fw-step">
+          <div class="fw-num" style="background:var(--purple)">1</div>
+          <div class="fw-step-text"><strong>See what the AI has learned</strong> — lessons, patterns, observations, vote history — all in searchable tables.</div>
+        </div>
+        <div class="fw-step">
+          <div class="fw-num" style="background:var(--purple)">2</div>
+          <div class="fw-step-text"><strong>Edit and correct</strong> — click any cell to update a lesson, add a new row, or remove outdated knowledge.</div>
+        </div>
+        <div class="fw-step">
+          <div class="fw-num" style="background:var(--purple)">3</div>
+          <div class="fw-step-text"><strong>Saved automatically</strong> — changes write back to the source file with a timestamped backup before every save.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── FEATURED: BUGCAPTURE ── -->
+<div class="section">
+  <div class="feature-wide">
+    <div>
+      <div class="fw-label">⭐ Featured tool</div>
+      <div class="fw-title">BugCapture — Turn bugs into<br>AI-ready context</div>
+      <p class="fw-desc">
+        Record your screen and audio while reproducing a bug. BugCapture transcribes your voice
+        with offline Whisper, extracts sequential screenshots, and packages everything into
+        a single <code style="color:var(--teal)">.md</code> file your AI agent can understand and act on immediately.
+      </p>
+      <div class="fw-steps">
+        <div class="fw-step">
+          <div class="fw-num">1</div>
+          <div class="fw-step-text"><strong>Record</strong> your screen + voice while reproducing the bug — no upload, fully local.</div>
+        </div>
+        <div class="fw-step">
+          <div class="fw-num">2</div>
+          <div class="fw-step-text"><strong>Export</strong> a structured .md with base64 screenshots + Whisper transcription.</div>
+        </div>
+        <div class="fw-step">
+          <div class="fw-num">3</div>
+          <div class="fw-step-text"><strong>Drop it</strong> into Copilot Agent or Claude — the AI sees the bug, reads your description, finds the fix.</div>
+        </div>
+      </div>
+    </div>
+    <div class="fw-visual">
+      <div class="fwv-bar">
+        <div class="fwv-dot" style="background:#f87171"></div>
+        <div class="fwv-dot" style="background:#fbbf24;margin-left:4px"></div>
+        <div class="fwv-dot" style="background:#34d399;margin-left:4px"></div>
+        <span class="fwv-title">bugcapture_report.md</span>
+      </div>
+      <div class="fwv-body">
+        <div class="fwv-line"><span class="fwv-key"># Bug Report</span></div>
+        <div class="fwv-line"><span class="fwv-key">Duration:</span> <span class="fwv-val highlight">00:34</span> &nbsp;<span class="fwv-badge">Whisper ✓</span></div>
+        <div class="fwv-line"><span class="fwv-key">Frames:</span> <span class="fwv-val">11 screenshots @ 1/3s</span></div>
+        <div class="fwv-line" style="margin-top:8px"><span class="fwv-key">## Transcript</span></div>
+        <div class="fwv-line"><span class="fwv-val">"The form fields aren't aligning after the Fabrik update — the left column overlaps the label on mobile..."</span></div>
+        <div class="fwv-line" style="margin-top:8px"><span class="fwv-key">## Screenshot [3/11]</span></div>
+        <div class="fwv-line"><span class="fwv-val">![frame_003](data:image/png;base64,iVBOR...)</span></div>
+        <div class="fwv-line" style="margin-top:8px;color:var(--teal)">→ Copilot found root cause in 40s</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOOLS GRID ── -->
+  <div id="tools">
+    <div class="section-label" style="margin-bottom:10px;">All tools</div>
+    <h2 style="margin-bottom:36px;">Everything in the suite</h2>
+  </div>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">🐛</div>
+        <div><div class="tool-name">BugCapture</div><div class="tool-tagline">Record → AI-ready bug report</div></div>
+      </div>
+      <div class="tool-desc">Screen + audio recording with offline Whisper transcription. Exports .md with embedded screenshots for any AI agent.</div>
+      <div class="tool-badges"><span class="badge badge-teal">Offline</span><span class="badge badge-purple">Whisper</span><span class="badge badge-green">Copilot ready</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">🧬</div>
+        <div><div class="tool-name">ContextForge</div><div class="tool-tagline">AI briefing before every debug</div></div>
+      </div>
+      <div class="tool-desc">Auto-collects git diff, SSH logs, and last BugCapture into a single AI briefing prompt. The AI knows everything before you say a word.</div>
+      <div class="tool-badges"><span class="badge badge-teal">Auto-detect</span><span class="badge badge-green">SSH logs</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">🗄️</div>
+        <div><div class="tool-name">DBInspect</div><div class="tool-tagline">Schema → Mermaid ER for AI</div></div>
+      </div>
+      <div class="tool-desc">Connects to MySQL/MariaDB or parses SQL dumps. Generates structured .md with full schema, FK relationships, and Mermaid ER diagram.</div>
+      <div class="tool-badges"><span class="badge badge-teal">MySQL</span><span class="badge badge-purple">Mermaid ER</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">🎯</div>
+        <div><div class="tool-name">PromptBoard</div><div class="tool-tagline">Visual AI prompt builder</div></div>
+      </div>
+      <div class="tool-desc">Canvas-based prompt builder. Drag text blocks, images, flow diagrams. Voice dictation. Export as .md with base64 images for multimodal AI.</div>
+      <div class="tool-badges"><span class="badge badge-yellow">Canvas</span><span class="badge badge-purple">Voice</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">✂️</div>
+        <div><div class="tool-name">ClipAI</div><div class="tool-tagline">Clipboard with AI memory</div></div>
+      </div>
+      <div class="tool-desc">Clipboard history (last 50 items) + local AI via Ollama. Translate, summarize, rewrite, extract key points from anything you copy.</div>
+      <div class="tool-badges"><span class="badge badge-teal">Offline AI</span><span class="badge badge-green">Ollama</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">📡</div>
+        <div><div class="tool-name">SiteIntel</div><div class="tool-tagline">SEO + competitive intelligence</div></div>
+      </div>
+      <div class="tool-desc">Full SEO analysis, Core Web Vitals, marketing stack, SSL, DNS, competitor positioning. Exports a ready-made AI prompt with all findings.</div>
+      <div class="tool-badges"><span class="badge badge-yellow">SEO</span><span class="badge badge-purple">Competitive</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">🧠</div>
+        <div><div class="tool-name">LearnBoard</div><div class="tool-tagline">Your AI's memory, visualized</div></div>
+      </div>
+      <div class="tool-desc">Web UI for the AI learning layer. View and edit lessons learned, workflow patterns, and success/failure stats from every session.</div>
+      <div class="tool-badges"><span class="badge badge-teal">Meta-AI</span><span class="badge badge-green">Editable</span></div>
+    </div>
+    <div class="tool-card">
+      <div class="tool-card-header">
+        <div class="tool-icon">🤖</div>
+        <div><div class="tool-name">AgentForge</div><div class="tool-tagline">Build self-improving agents</div></div>
+      </div>
+      <div class="tool-desc">Create per-project AI agents that learn from your codebase. Capture learning events automatically via Claude Code hooks. Cross-project pattern distillation.</div>
+      <div class="tool-badges"><span class="badge badge-purple">Meta-AI</span><span class="badge badge-teal">Auto-learn</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="how">
+  <div class="section">
+    <div class="text-center" style="margin-bottom:48px;">
+      <div class="section-label">How it works</div>
+      <h2>The learning loop</h2>
+      <p class="section-sub mx-auto text-center">Every session feeds the next. The AI accumulates context, preferences and lessons — so it gets more useful over time without any manual configuration.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-title">You work with the tools</div>
+        <div class="step-desc">Build, debug, analyze — the tools run locally, capture context, and generate AI-ready outputs for Copilot or Claude.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-title">The AI records what it learns</div>
+        <div class="step-desc">After significant sessions, the learning layer is updated: new lessons, workflow patterns, corrected mistakes, validated approaches.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-title">Next session starts smarter</div>
+        <div class="step-desc">The AI reads the learning layer at session start. It already knows your preferences, past mistakes, and the context of your projects.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONSULTING ── -->
+<div class="section" id="consulting">
+  <div class="consulting-wrap">
+    <div>
+      <div class="section-label">Work with us</div>
+      <div class="consulting-title">Need AI in your<br>development workflow?</div>
+      <p class="consulting-desc">
+        We help companies integrate AI agents into their existing dev processes —
+        without disrupting what already works. From custom tool development to
+        training your team on AI-augmented debugging workflows.
+      </p>
+      <div class="services-list">
+        <div class="service-item">Custom AI tooling for your stack</div>
+        <div class="service-item">AI-augmented debugging workflow setup</div>
+        <div class="service-item">Team training on AI-assisted development</div>
+        <div class="service-item">Legacy codebase AI onboarding</div>
+      </div>
+      <a href="mailto:contact@machina.chat" class="btn-lg btn-teal" style="width:fit-content">Get in touch →</a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:220px;">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:28px;font-weight:900;color:var(--teal)">~40s</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px">avg time for AI to<br>find a bug with BugCapture</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:28px;font-weight:900;color:var(--teal)">100%</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:4px">local processing<br>no data leaves your machine</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── NEWSLETTER ── -->
+<div class="section-sm" id="newsletter">
+  <div class="newsletter-wrap">
+    <div class="section-label">Stay in the loop</div>
+    <h2>New tools, lessons, and AI workflow insights</h2>
+    <p>No spam. Monthly digest of what was built, what was learned, and what's coming next.</p>
+    <form class="nl-form" onsubmit="handleSubscribe(event)">
+      <input type="email" id="nlEmail" placeholder="your@email.com" required>
+      <button type="submit" class="btn-lg btn-teal" style="padding:12px 24px;font-size:14px;">Subscribe →</button>
+    </form>
+    <p class="nl-note">No spam · Unsubscribe anytime · Built with Brevo</p>
+  </div>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">mach<span>ina</span></div>
+  <div class="footer-links">
+    <a href="#">Tools</a>
+    <a href="#">Blog</a>
+    <a href="#">Docs</a>
+    <a href="https://github.com" target="_blank">GitHub</a>
+    <a href="mailto:contact@machina.chat">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 Machina · MIT License · machina.chat</div>
+</footer>
+
+<script>
+function handleSubscribe(e) {
+  e.preventDefault();
+  const email = document.getElementById('nlEmail').value;
+  // Placeholder — integrate Brevo API here
+  alert(`Grazie! ${email} aggiunto alla lista. (Integrazione Brevo da configurare)`);
+}
+
+// Smooth reveal on scroll
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.tool-card, .step-card, .feature-wide, .consulting-wrap').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity .5s ease, transform .5s ease';
+    io.observe(el);
+  });
+}
+</script>
+
+</body>
+</html>
