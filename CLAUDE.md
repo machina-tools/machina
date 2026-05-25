@@ -41,8 +41,8 @@ Setup: `bash setup.sh` dalla root del repo.
 - [x] Newsletter Brevo integrata
 - [x] 3 tool pubblici con HTML frontend in inglese
 - [x] Testi lancio PH + HN + Twitter + LinkedIn (`LAUNCH.md`)
-- [ ] Demo video — da registrare con BugCapture (47s, workflow reale)
-- [ ] Email contact@machina.chat — da attivare in Hostinger → Email
+- [x] Demo video — `video/demo-video-final.mp4` (75s, Laravel/React bug, voce AI Liam)
+- [x] Email contact@machina.chat — attiva su Hostinger Mail
 - [ ] Lancio su Product Hunt + Hacker News (dopo il video)
 
 ## Convenzioni
