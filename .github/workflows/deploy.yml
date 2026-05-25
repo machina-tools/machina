@@ -35,6 +35,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           cp CNAME _site/
+          cp -r assets/ _site/assets/
           cp -r blog/dist/. _site/blog/
 
       - uses: actions/upload-pages-artifact@v3
