@@ -9,6 +9,16 @@
   <meta property="og:title" content="Machina — AI tools that learn with you">
   <meta property="og:description" content="Open-source AI workflow tools that get smarter with every session. Built by a developer who uses them every day.">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://machina.chat/assets/logo-icon-dark.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://machina.chat/assets/logo-icon-dark.png">
+
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,8 +59,8 @@
       background: rgba(8,13,24,.85); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
-    .nav-logo { font-weight: 800; font-size: 20px; color: var(--text); letter-spacing: -.5px; }
-    .nav-logo span { color: var(--teal); }
+    .nav-logo { display: flex; align-items: center; }
+    .nav-logo img { height: 32px; width: auto; }
     .nav-links { display: flex; gap: 24px; margin-left: auto; }
     .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-dim); transition: color .15s; }
     .nav-links a:hover { color: var(--text); text-decoration: none; }
@@ -248,7 +258,9 @@
 
 <!-- ── NAV ── -->
 <nav>
-  <div class="nav-logo">mach<span>ina</span></div>
+  <a class="nav-logo" href="/">
+    <img src="/assets/logo-horizontal.png" alt="Machina Tools">
+  </a>
   <div class="nav-links">
     <a href="#learnboard">LearnBoard</a>
     <a href="#tools">Tools</a>
