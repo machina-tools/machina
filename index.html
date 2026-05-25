@@ -26,14 +26,14 @@
 
   <style>
     :root {
-      --bg: #080d18;
-      --bg2: #0d1525;
-      --surface: #131f35;
-      --surface2: #1a2845;
-      --border: #1e3050;
-      --teal: #14b8a6;
-      --teal-dim: #0d9488;
-      --teal-glow: rgba(20,184,166,.15);
+      --bg: #07080e;
+      --bg2: #0c0d16;
+      --surface: #111220;
+      --surface2: #181930;
+      --border: #1f2040;
+      --teal: #00c8e0;
+      --teal-dim: #009bb0;
+      --teal-glow: rgba(0,200,224,.15);
       --text: #f0f4ff;
       --text-dim: #8899bb;
       --text-muted: #4a5a7a;
@@ -41,8 +41,10 @@
       --sans: 'Inter', system-ui, sans-serif;
       --red: #f87171;
       --yellow: #fbbf24;
-      --green: #34d399;
-      --purple: #a78bfa;
+      --green: #4ade80;
+      --purple: #7c3aed;
+      --purple-dim: #6d28d9;
+      --purple-glow: rgba(124,58,237,.15);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -56,16 +58,21 @@
       position: sticky; top: 0; z-index: 100;
       display: flex; align-items: center; gap: 32px;
       padding: 0 40px; height: 62px;
-      background: rgba(8,13,24,.85); backdrop-filter: blur(12px);
+      background: rgba(7,8,14,.88); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
+    }
+    nav::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, var(--teal) 0%, var(--purple) 100%);
+      opacity: 0.25;
     }
     .nav-logo { display: flex; align-items: center; }
     .nav-logo img { height: 32px; width: auto; }
     .nav-links { display: flex; gap: 24px; margin-left: auto; }
     .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-dim); transition: color .15s; }
     .nav-links a:hover { color: var(--text); text-decoration: none; }
-    .nav-cta { padding: 7px 18px; background: var(--teal); color: #080d18; border-radius: 7px; font-weight: 700; font-size: 13px; transition: background .15s; }
-    .nav-cta:hover { background: var(--teal-dim); text-decoration: none; }
+    .nav-cta { padding: 7px 18px; background: linear-gradient(135deg, var(--teal), #0090e0); color: #07080e; border-radius: 7px; font-weight: 700; font-size: 13px; transition: opacity .15s; }
+    .nav-cta:hover { opacity: .85; text-decoration: none; }
 
     /* ── HERO ── */
     .hero {
@@ -75,12 +82,14 @@
     }
     .hero::before {
       content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(20,184,166,.12) 0%, transparent 70%);
+      background:
+        radial-gradient(ellipse 60% 55% at 25% 0%, rgba(0,200,224,.13) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 55% at 75% 0%, rgba(124,58,237,.10) 0%, transparent 65%);
       pointer-events: none;
     }
     .hero-badge {
       display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(20,184,166,.1); border: 1px solid rgba(20,184,166,.25);
+      background: rgba(0,200,224,.08); border: 1px solid rgba(0,200,224,.25);
       color: var(--teal); font-size: 12px; font-weight: 600; padding: 4px 12px;
       border-radius: 99px; margin-bottom: 28px; letter-spacing: .3px;
     }
@@ -102,8 +111,8 @@
       padding: 13px 28px; border-radius: 9px; font-weight: 700; font-size: 15px;
       cursor: pointer; border: none; transition: all .15s;
     }
-    .btn-teal { background: var(--teal); color: #080d18; }
-    .btn-teal:hover { background: var(--teal-dim); text-decoration: none; }
+    .btn-teal { background: linear-gradient(135deg, var(--teal), #0090e0); color: #07080e; }
+    .btn-teal:hover { opacity: .85; text-decoration: none; }
     .btn-outline { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
     .btn-outline:hover { border-color: var(--teal); color: var(--teal); text-decoration: none; }
     .hero-note { margin-top: 18px; font-size: 12px; color: var(--text-muted); }
@@ -156,14 +165,14 @@
     .tool-desc { font-size: 13px; color: var(--text-dim); line-height: 1.6; flex: 1; }
     .tool-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
     .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
-    .badge-teal { background: rgba(20,184,166,.12); color: var(--teal); }
-    .badge-purple { background: rgba(167,139,250,.12); color: var(--purple); }
+    .badge-teal { background: rgba(0,200,224,.1); color: var(--teal); }
+    .badge-purple { background: rgba(124,58,237,.12); color: var(--purple); }
     .badge-yellow { background: rgba(251,191,36,.1); color: var(--yellow); }
     .badge-green { background: rgba(52,211,153,.1); color: var(--green); }
 
     /* ── FEATURED: BUGCAPTURE ── */
     .feature-wide {
-      background: linear-gradient(135deg, var(--surface) 0%, rgba(20,184,166,.07) 100%);
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(0,200,224,.06) 100%);
       border: 1px solid var(--border); border-radius: 16px;
       padding: 44px; display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
       align-items: center; margin-bottom: 48px;
@@ -189,12 +198,12 @@
     .fwv-key { color: var(--teal); margin-right: 6px; }
     .fwv-val { color: var(--text-dim); }
     .fwv-val.highlight { color: var(--text); }
-    .fwv-badge { display: inline-block; background: rgba(20,184,166,.15); color: var(--teal); font-size: 10px; padding: 1px 5px; border-radius: 3px; }
+    .fwv-badge { display: inline-block; background: rgba(0,200,224,.12); color: var(--teal); font-size: 10px; padding: 1px 5px; border-radius: 3px; }
 
     /* ── HOW IT WORKS ── */
     .steps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
-    .step-num { font-size: 36px; font-weight: 900; color: rgba(20,184,166,.2); line-height: 1; margin-bottom: 12px; font-family: var(--mono); }
+    .step-num { font-size: 36px; font-weight: 900; color: rgba(0,200,224,.2); line-height: 1; margin-bottom: 12px; font-family: var(--mono); }
     .step-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
     .step-desc { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
 
@@ -274,6 +283,8 @@
 
 <!-- ── HERO ── -->
 <section class="hero">
+  <img src="/assets/logo-mark.png" alt="" aria-hidden="true" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:520px;opacity:0.04;pointer-events:none;z-index:0;user-select:none;">
+  <div style="position:relative;z-index:1;">
   <div class="hero-badge">Open source · Free forever</div>
   <h1>AI tools that<br><span class="accent">learn</span> with <span class="dim">you</span></h1>
   <p class="hero-sub">
@@ -285,6 +296,7 @@
     <a href="#tools" class="btn-lg btn-outline">See all tools →</a>
   </div>
   <p class="hero-note">MIT licensed · runs locally · no cloud required</p>
+  </div>
 </section>
 
 <!-- ── VIDEOS ── -->
@@ -294,7 +306,7 @@
     <h2 style="margin-bottom:48px;">Watch the tools work</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;text-align:left;">
       <div>
-        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(20,184,166,.08);">
+        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(0,200,224,.10);">
           <iframe
             src="https://www.youtube.com/embed/Qb9yuSKKojU"
             title="BugCapture demo"
@@ -310,7 +322,7 @@
         </div>
       </div>
       <div>
-        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(167,139,250,.08);">
+        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(124,58,237,.10);">
           <iframe
             src="https://www.youtube.com/embed/IZajNU90-Fg"
             title="LearnBoard demo"
@@ -374,7 +386,7 @@
 
 <!-- ── FEATURED: LEARNBOARD ── -->
 <div class="section" id="learnboard">
-  <div class="feature-wide" style="background:linear-gradient(135deg,var(--surface) 0%,rgba(167,139,250,.07) 100%);">
+  <div class="feature-wide" style="background:linear-gradient(135deg,var(--surface) 0%,rgba(124,58,237,.08) 100%);">
     <div class="fw-visual">
       <div class="fwv-bar">
         <div class="fwv-dot" style="background:#f87171"></div>
@@ -417,7 +429,7 @@
           <span style="color:var(--text);line-height:1.4;font-size:11px">Always restart via the bash script that rebuilds nvm — <code style="color:var(--yellow)">nohup node</code> fails silently without nvm env.</span>
         </div>
       </div>
-      <div style="padding:9px 12px;background:rgba(167,139,250,.06);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+      <div style="padding:9px 12px;background:rgba(124,58,237,.06);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
         <span style="font-size:10px;color:var(--purple);font-family:var(--mono)">2 unsaved changes · backup enabled</span>
         <span style="font-size:10px;font-weight:700;color:#fff;background:var(--purple);padding:3px 10px;border-radius:4px;">Save to CLAUDE.md</span>
       </div>
@@ -646,7 +658,7 @@
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div class="footer-logo">mach<span>ina</span></div>
+  <a href="/" style="display:flex;align-items:center;"><img src="/assets/logo-horizontal.png" alt="Machina Tools" style="height:26px;width:auto;"></a>
   <div class="footer-links">
     <a href="#tools">Tools</a>
     <a href="/blog/">Blog</a>
