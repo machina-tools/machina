@@ -67,7 +67,7 @@
       opacity: 0.25;
     }
     .nav-logo { display: flex; align-items: center; }
-    .nav-logo img { height: 32px; width: auto; }
+    .nav-logo img { height: 44px; width: auto; }
     .nav-links { display: flex; gap: 24px; margin-left: auto; }
     .nav-links a { font-size: 14px; font-weight: 500; color: var(--text-dim); transition: color .15s; }
     .nav-links a:hover { color: var(--text); text-decoration: none; }
@@ -273,7 +273,6 @@
   <div class="nav-links">
     <a href="#learnboard">LearnBoard</a>
     <a href="#tools">Tools</a>
-    <a href="#how">How it works</a>
     <a href="#consulting">Consulting</a>
     <a href="/blog/">Blog</a>
     <a href="https://github.com/machina-tools/machina" target="_blank">GitHub ↗</a>
@@ -283,8 +282,7 @@
 
 <!-- ── HERO ── -->
 <section class="hero">
-  <img src="/assets/logo-mark.png" alt="" aria-hidden="true" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:520px;opacity:0.04;pointer-events:none;z-index:0;user-select:none;">
-  <div style="position:relative;z-index:1;">
+  <img src="/assets/logo-mark.png" alt="" aria-hidden="true" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);width:520px;opacity:0.04;pointer-events:none;user-select:none;">
   <div class="hero-badge">Open source · Free forever</div>
   <h1>AI tools that<br><span class="accent">learn</span> with <span class="dim">you</span></h1>
   <p class="hero-sub">
@@ -296,7 +294,6 @@
     <a href="#tools" class="btn-lg btn-outline">See all tools →</a>
   </div>
   <p class="hero-note">MIT licensed · runs locally · no cloud required</p>
-  </div>
 </section>
 
 <!-- ── VIDEOS ── -->
@@ -305,22 +302,6 @@
     <div class="section-label" style="margin-bottom:10px;">See it in action</div>
     <h2 style="margin-bottom:48px;">Watch the tools work</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;text-align:left;">
-      <div>
-        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(0,200,224,.10);">
-          <iframe
-            src="https://www.youtube.com/embed/Qb9yuSKKojU"
-            title="BugCapture demo"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            style="position:absolute;top:0;left:0;width:100%;height:100%;">
-          </iframe>
-        </div>
-        <div style="margin-top:16px;">
-          <div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:4px;">BugCapture</div>
-          <div style="font-size:14px;color:var(--text-dim);">47 seconds of recording. Bug fixed in under 2 minutes.</div>
-        </div>
-      </div>
       <div>
         <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(124,58,237,.10);">
           <iframe
@@ -337,51 +318,41 @@
           <div style="font-size:14px;color:var(--text-dim);">Your AI finally remembers you. No re-explaining every session.</div>
         </div>
       </div>
+      <div>
+        <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 40px rgba(0,200,224,.10);">
+          <iframe
+            src="https://www.youtube.com/embed/Qb9yuSKKojU"
+            title="BugCapture demo"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            style="position:absolute;top:0;left:0;width:100%;height:100%;">
+          </iframe>
+        </div>
+        <div style="margin-top:16px;">
+          <div style="font-weight:700;font-size:16px;color:var(--text);margin-bottom:4px;">BugCapture</div>
+          <div style="font-size:14px;color:var(--text-dim);">47 seconds of recording. Bug fixed in under 2 minutes.</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ── LEARNER SECTION ── -->
-<div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-<div class="section learner-wrap">
-  <div class="learner-text">
-    <div class="section-label">The differentiator</div>
-    <h2>Your AI gets smarter<br>every session</h2>
-    <p>
-      Most AI tools forget everything when you close the tab. Machina uses a persistent
-      <strong>learning layer</strong> that records lessons learned, workflow patterns, and
-      preferences — and makes them available to the AI on the next session, automatically.
-    </p>
-    <p>
-      The result: an AI assistant that already knows you prefer offline-first tools, that palette
-      choices come from reference images, and that you never want decorative animations.
-      You stop repeating yourself. The AI stops making the same mistakes.
-    </p>
-    <div class="learner-stats">
-      <div class="lstat"><span class="lstat-num">22</span><span class="lstat-label">Lessons learned</span></div>
-      <div class="lstat"><span class="lstat-num">25</span><span class="lstat-label">Tools built</span></div>
-      <div class="lstat"><span class="lstat-num">50%</span><span class="lstat-label">Ideas shipped</span></div>
-    </div>
+<!-- ── NEWSLETTER ── -->
+<div class="section-sm" id="newsletter">
+  <div class="newsletter-wrap">
+    <div class="section-label">Stay in the loop</div>
+    <h2>New tools, lessons, and AI workflow insights</h2>
+    <p>No spam. Monthly digest of what was built, what was learned, and what's coming next.</p>
+    <form class="nl-form" method="POST" action="https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_ckaeJU-t0nAn8FNfAFgvVW9hS1KpSrA9DaE02ZAQ5AIZnzWHb6C2sNme7xqNWzEjIOdNsgN6EXhqoM-VVDLEt5sD7rNJ945jIjBQhNt8SuZvjv5Fvbv3t5-dJQcOi6CoDCbSOIkH5jDhALn2idBp4phZZKiX5W_hd68H0v3pF2VCIAf15-BO87YU23kXw==">
+      <input type="email" id="EMAIL" name="EMAIL" placeholder="your@email.com" required>
+      <button type="submit" class="btn-lg btn-teal" style="padding:12px 24px;font-size:14px;">Subscribe →</button>
+      <input type="text" name="email_address_check" value="" style="display:none">
+      <input type="hidden" name="locale" value="it">
+      <input type="hidden" name="html_type" value="simple">
+    </form>
+    <p class="nl-note">No spam · Unsubscribe anytime · Built with Brevo</p>
   </div>
-  <div class="learner-visual">
-    <div class="lv-header">🧠 AI Learning Log — live</div>
-    <div class="lv-row">
-      <div class="lv-tag">LESSON #15</div>
-      <div class="lv-text">Always prefer local/free solutions — never propose paid APIs without exhausting local alternatives first.</div>
-      <div class="lv-meta">Derived from: Transcriber session · 2026-05-20</div>
-    </div>
-    <div class="lv-row">
-      <div class="lv-tag">LESSON #18</div>
-      <div class="lv-text">User prefers autonomous tools that find context on their own, not manual forms to fill.</div>
-      <div class="lv-meta">Derived from: ContextForge v2 redesign</div>
-    </div>
-    <div class="lv-row">
-      <div class="lv-tag">PATTERN</div>
-      <div class="lv-text">Every validated tool generates an implicit second need. Flag it without building it immediately.</div>
-      <div class="lv-meta">Observation · 2026-05-22</div>
-    </div>
-  </div>
-</div>
 </div>
 
 <!-- ── FEATURED: LEARNBOARD ── -->
@@ -579,34 +550,6 @@
   </div>
 </div>
 
-<!-- ── HOW IT WORKS ── -->
-<div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="how">
-  <div class="section">
-    <div class="text-center" style="margin-bottom:48px;">
-      <div class="section-label">How it works</div>
-      <h2>The learning loop</h2>
-      <p class="section-sub mx-auto text-center">Every session feeds the next. The AI accumulates context, preferences and lessons — so it gets more useful over time without any manual configuration.</p>
-    </div>
-    <div class="steps-row">
-      <div class="step-card">
-        <div class="step-num">01</div>
-        <div class="step-title">You work with the tools</div>
-        <div class="step-desc">Build, debug, analyze — the tools run locally, capture context, and generate AI-ready outputs for Copilot or Claude.</div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">02</div>
-        <div class="step-title">The AI records what it learns</div>
-        <div class="step-desc">After significant sessions, the learning layer is updated: new lessons, workflow patterns, corrected mistakes, validated approaches.</div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">03</div>
-        <div class="step-title">Next session starts smarter</div>
-        <div class="step-desc">The AI reads the learning layer at session start. It already knows your preferences, past mistakes, and the context of your projects.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ── CONSULTING ── -->
 <div class="section" id="consulting">
   <div class="consulting-wrap">
@@ -639,20 +582,31 @@
   </div>
 </div>
 
-<!-- ── NEWSLETTER ── -->
-<div class="section-sm" id="newsletter">
-  <div class="newsletter-wrap">
-    <div class="section-label">Stay in the loop</div>
-    <h2>New tools, lessons, and AI workflow insights</h2>
-    <p>No spam. Monthly digest of what was built, what was learned, and what's coming next.</p>
-    <form class="nl-form" method="POST" action="https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_ckaeJU-t0nAn8FNfAFgvVW9hS1KpSrA9DaE02ZAQ5AIZnzWHb6C2sNme7xqNWzEjIOdNsgN6EXhqoM-VVDLEt5sD7rNJ945jIjBQhNt8SuZvjv5Fvbv3t5-dJQcOi6CoDCbSOIkH5jDhALn2idBp4phZZKiX5W_hd68H0v3pF2VCIAf15-BO87YU23kXw==">
-      <input type="email" id="EMAIL" name="EMAIL" placeholder="your@email.com" required>
-      <button type="submit" class="btn-lg btn-teal" style="padding:12px 24px;font-size:14px;">Subscribe →</button>
-      <input type="text" name="email_address_check" value="" style="display:none">
-      <input type="hidden" name="locale" value="it">
-      <input type="hidden" name="html_type" value="simple">
-    </form>
-    <p class="nl-note">No spam · Unsubscribe anytime · Built with Brevo</p>
+<!-- ── HOW IT WORKS ── -->
+<div style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="how">
+  <div class="section">
+    <div class="text-center" style="margin-bottom:48px;">
+      <div class="section-label">How it works</div>
+      <h2>The learning loop</h2>
+      <p class="section-sub mx-auto text-center">Every session feeds the next. The AI accumulates context, preferences and lessons — so it gets more useful over time without any manual configuration.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-title">You work with the tools</div>
+        <div class="step-desc">Build, debug, analyze — the tools run locally, capture context, and generate AI-ready outputs for Copilot or Claude.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-title">The AI records what it learns</div>
+        <div class="step-desc">After significant sessions, the learning layer is updated: new lessons, workflow patterns, corrected mistakes, validated approaches.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-title">Next session starts smarter</div>
+        <div class="step-desc">The AI reads the learning layer at session start. It already knows your preferences, past mistakes, and the context of your projects.</div>
+      </div>
+    </div>
   </div>
 </div>
 
