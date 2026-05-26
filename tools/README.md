@@ -1,6 +1,6 @@
 # Machina Tools
 
-Three tools, one workflow: **record the bug → build the context → AI fixes it**.
+Four tools, one workflow: **build the prompt → record the bug → forge the context → AI fixes it**.
 
 ## Quick start
 
@@ -8,14 +8,15 @@ Three tools, one workflow: **record the bug → build the context → AI fixes i
 # From the repo root:
 bash setup.sh
 
-# Start each tool in a separate terminal:
-cd tools/bugcapture  && node server.mjs   # http://localhost:4327
-cd tools/contextforge && node server.js   # http://localhost:4328
-cd tools/learnboard  && node server.js    # http://localhost:4331
+# Start each server-based tool in a separate terminal:
+cd tools/bugcapture   && node server.mjs   # http://localhost:4327
+cd tools/contextforge && node server.js    # http://localhost:4328
+cd tools/learnboard   && node server.js    # http://localhost:4331
 ```
 
-Then open `tools/bugcapture/index.html`, `tools/contextforge/index.html`,
-and `tools/learnboard/index.html` in your browser.
+Then open each tool's `index.html` in your browser.
+
+> **PromptBoard** needs no server — just open `tools/promptboard/index.html` directly.
 
 ---
 
@@ -104,3 +105,34 @@ LearnBoard reads and edits `LEARNING.md` — the persistent memory file your AI 
 ```
 Read LEARNING.md at session start to remember preferences and past lessons.
 ```
+
+---
+
+## PromptBoard
+
+**Visual canvas for building AI prompts**
+
+| Requirement | Details |
+|-------------|---------|
+| Browser | Chrome/Edge recommended (Web Speech API for live dictation) |
+| Server | None — open `index.html` directly |
+
+**What it does:**
+
+1. Drag **Text**, **Image**, and **Flow** blocks onto an infinite canvas
+2. Connect blocks with arrows and annotate connections
+3. Add images by drag-and-drop, file pick, or paste (Ctrl+V)
+4. Dictate directly into any text block via microphone (Web Speech API)
+5. Export the board as a structured `.md` with optional base64 images — ready for multimodal AI
+
+**Keyboard shortcuts:**
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+S` | Save board |
+| `Delete` | Delete selected block or arrow |
+| `Escape` | Deselect / exit connect mode |
+
+**No installation needed.** Boards are saved to `localStorage` — fully offline.

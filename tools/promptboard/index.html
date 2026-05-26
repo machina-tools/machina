@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptBoard — Machina</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2307080e'/><text x='16' y='23' text-anchor='middle' font-size='20' font-family='monospace' fill='%2300c8e0'>M</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal:#00c8e0; --accent:#7c3aed; --amber:#F0A020; --bad:#E87070; --green:#5CB85C;
+  --bg:#07080e; --surface:#111220; --surface2:#181930; --surface3:#0c0d16;
+  --border:#1f2040; --text:#f0f4ff; --text-dim:#8899bb; --text-muted:#6677aa;
+  --c-text:#8899bb; --c-image:#7c3aed; --c-flow:#F0A020;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100vh;overflow:hidden;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;font-size:13px;}
+
+/* TOPBAR */
+.topbar{background:var(--surface3);border-bottom:1px solid var(--border);padding:0 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;height:46px;}
+.topbar h1{font-size:.95rem;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:8px;}
+.topbar h1 .logo-mark{width:22px;height:22px;}
+.topbar input.board-name{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 10px;border-radius:6px;font-size:.82rem;font-family:inherit;width:180px;outline:none;transition:border-color .2s;}
+.topbar input.board-name:focus{border-color:var(--teal);}
+.spacer{flex:1;}
+.topbar .sep{width:1px;height:22px;background:var(--border);}
+.tbtn{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:6px;font-size:.78rem;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.tbtn:hover{border-color:var(--teal);color:var(--teal);}
+.tbtn.active{border-color:var(--teal);color:var(--teal);background:rgba(0,200,224,.1);}
+.tbtn.accent{border-color:var(--teal);background:rgba(0,200,224,.12);color:var(--teal);}
+.tbtn.accent:hover{background:rgba(0,200,224,.22);}
+.tbtn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* APP LAYOUT */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:52px 1fr 260px;overflow:hidden;}
+
+/* LEFT TOOLBAR */
+.sidebar{background:var(--surface3);border-right:1px solid var(--border);padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.sbar-btn{width:38px;height:38px;background:transparent;border:1px solid transparent;color:var(--text-muted);border-radius:7px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;position:relative;}
+.sbar-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--border);}
+.sbar-btn.voice-on{background:rgba(232,112,112,.15);border-color:var(--bad);color:var(--bad);animation:pulse 1.2s infinite;}
+.sbar-btn.connect-on{background:rgba(240,160,32,.15);border-color:var(--amber);color:var(--amber);}
+.sbar-btn.connect-pending{background:rgba(0,200,224,.15);border-color:var(--teal);color:var(--teal);animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.sbar-sep{width:28px;height:1px;background:var(--border);margin:4px 0;}
+.sbar-tooltip{position:absolute;left:46px;white-space:nowrap;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);font-size:.68rem;padding:3px 8px;border-radius:5px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;}
+.sbar-btn:hover .sbar-tooltip{opacity:1;}
+
+/* CANVAS */
+.canvas-area{position:relative;overflow:hidden;background:var(--bg);}
+.canvas-area::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,var(--border) 1px,transparent 1px);background-size:24px 24px;opacity:.5;pointer-events:none;z-index:0;}
+.canvas-scroll{width:100%;height:100%;overflow:auto;}
+.canvas{position:relative;width:3000px;height:2000px;}
+
+/* SVG ARROWS */
+#arrows-svg{position:absolute;top:0;left:0;width:3000px;height:2000px;z-index:2;overflow:visible;}
+#arrows-svg .arrow-hit{pointer-events:stroke;cursor:pointer;}
+#arrows-svg .arrow-path{pointer-events:none;}
+
+/* ARROW LABELS */
+.arrow-label{position:absolute;z-index:6;transform:translate(-50%,-50%);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:.72rem;color:var(--text-dim);cursor:pointer;white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;user-select:none;transition:border-color .15s;}
+.arrow-label:hover{border-color:var(--amber);}
+.arrow-label.selected{border-color:var(--teal);color:var(--teal);}
+.arrow-label.empty{color:var(--text-muted);border-style:dashed;opacity:.5;}
+.arrow-label.empty:hover{opacity:1;}
+
+/* CONNECT CURSOR */
+.canvas.connect-mode{cursor:crosshair;}
+.canvas.connect-mode .block{cursor:pointer;}
+
+/* BLOCKS */
+.block{position:absolute;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;min-width:180px;min-height:70px;display:flex;flex-direction:column;box-shadow:0 2px 12px rgba(0,0,0,.3);transition:box-shadow .15s;user-select:none;z-index:10;}
+.block.selected{box-shadow:0 0 0 2px var(--teal),0 4px 20px rgba(0,0,0,.4);}
+.block.connect-source{box-shadow:0 0 0 2px var(--amber),0 4px 20px rgba(0,0,0,.4);}
+.block-text  .block-header{border-color:var(--c-text);}
+.block-image .block-header{border-color:var(--c-image);}
+.block-flow  .block-header{border-color:var(--c-flow);}
+.block-text.selected {border-color:var(--c-text);}
+.block-image.selected{border-color:var(--c-image);}
+.block-flow.selected {border-color:var(--c-flow);}
+.block-flow.shape-terminal{border-radius:36px;}
+.block-flow.shape-decision{border-color:var(--teal);}
+.block-flow.shape-decision .block-header{border-color:var(--teal);}
+
+.block-header{display:flex;align-items:center;gap:6px;padding:7px 10px 6px;border-bottom:1px solid var(--border);cursor:grab;flex-shrink:0;border-radius:8px 8px 0 0;}
+.block-header:active{cursor:grabbing;}
+.block-type-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);flex:1;}
+.block-text  .block-type-label{color:var(--c-text);}
+.block-image .block-type-label{color:var(--c-image);}
+.block-flow  .block-type-label{color:var(--c-flow);}
+.block-flow.shape-decision .block-type-label{color:var(--teal);}
+.block-hbtn{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px;line-height:1;transition:color .15s;}
+.block-hbtn:hover{color:var(--text);}
+.block-hbtn.del:hover{color:var(--bad);}
+
+.block-body{flex:1;padding:10px;overflow:hidden;display:flex;flex-direction:column;}
+.block-content{width:100%;flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:.82rem;line-height:1.6;resize:none;min-height:50px;}
+.block-content::placeholder{color:var(--text-muted);}
+
+.block-img-wrap{flex:1;display:flex;flex-direction:column;gap:6px;min-height:0;}
+.block-img-wrap img{max-width:100%;max-height:140px;object-fit:contain;border-radius:5px;}
+.img-desc{font-size:.72rem;color:var(--text-muted);font-style:italic;}
+.drop-zone{flex:1;border:1.5px dashed var(--border);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--text-muted);font-size:.8rem;padding:12px;transition:border-color .2s;min-height:60px;}
+.drop-zone:hover{border-color:var(--accent);color:var(--accent);}
+
+.resize-handle{position:absolute;right:-4px;bottom:-4px;width:14px;height:14px;cursor:nwse-resize;background:var(--surface2);border:1px solid var(--border);border-radius:3px;opacity:0;transition:opacity .2s;z-index:11;}
+.block:hover .resize-handle,.block.selected .resize-handle{opacity:1;}
+.resize-handle::after{content:'⊿';font-size:9px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;height:100%;}
+
+/* VOICE */
+.voice-indicator{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--bad);color:#fff;padding:8px 20px;border-radius:20px;font-size:.8rem;font-weight:600;display:none;z-index:999;box-shadow:0 4px 16px rgba(232,112,112,.4);}
+.voice-indicator.show{display:block;}
+
+/* PROPS */
+.props{background:var(--surface3);border-left:1px solid var(--border);overflow-y:auto;padding:14px;}
+.props-empty{color:var(--text-muted);font-size:.8rem;text-align:center;padding:40px 12px;line-height:1.8;}
+.props h3{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:10px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:5px;font-size:.8rem;font-family:inherit;outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal);}
+.field textarea{resize:vertical;min-height:70px;}
+.field select option{background:var(--surface2);}
+.props-sep{height:1px;background:var(--border);margin:12px 0;}
+.prow{display:flex;gap:6px;}
+.prow>.field{flex:1;min-width:0;}
+.pbtn{width:100%;padding:7px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:.78rem;font-family:inherit;transition:all .15s;margin-bottom:6px;}
+.pbtn:hover{border-color:var(--teal);color:var(--teal);}
+.pbtn.danger{border-color:var(--bad);color:var(--bad);}
+.pbtn.danger:hover{background:rgba(232,112,112,.1);}
+.pbtn.amber{border-color:var(--amber);color:var(--amber);}
+.pbtn.amber:hover{background:rgba(240,160,32,.1);}
+
+/* EXPORT */
+.export-panel{background:var(--surface3);border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;max-height:45vh;transition:max-height .2s;}
+.export-panel.collapsed{max-height:38px;}
+.export-header{padding:9px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;user-select:none;flex-shrink:0;}
+.export-header span{font-size:.8rem;font-weight:600;color:var(--text-dim);}
+.export-header .arrow{margin-left:auto;font-size:.75rem;color:var(--text-muted);transition:transform .2s;}
+.export-panel.collapsed .arrow{transform:rotate(180deg);}
+.export-body{display:flex;gap:12px;padding:0 14px 14px;min-height:0;overflow:hidden;flex:1;}
+.export-panel.collapsed .export-body{display:none;}
+.export-col{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;}
+.export-col h4{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
+.prompt-preview{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:10px;font-family:'JetBrains Mono','Courier New',monospace;font-size:.73rem;color:var(--text-dim);overflow:auto;white-space:pre-wrap;line-height:1.6;min-height:80px;}
+.export-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.export-actions button{padding:6px 14px;border-radius:6px;font-size:.78rem;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid;transition:background .15s;}
+.ebtn-copy{border-color:var(--teal);background:rgba(0,200,224,.1);color:var(--teal);}
+.ebtn-copy:hover{background:rgba(0,200,224,.2);}
+.ebtn-md{border-color:var(--accent);background:rgba(124,58,237,.1);color:var(--accent);}
+.ebtn-md:hover{background:rgba(124,58,237,.2);}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:500;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:440px;max-width:95vw;max-height:80vh;overflow-y:auto;}
+.modal h3{font-size:1rem;font-weight:600;margin-bottom:16px;}
+.board-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.board-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;cursor:pointer;transition:border-color .2s;}
+.board-item:hover{border-color:var(--teal);}
+.board-item-name{flex:1;font-size:.88rem;font-weight:600;}
+.board-item-date{font-size:.72rem;color:var(--text-muted);}
+.board-item-del{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.85rem;padding:4px;}
+.board-item-del:hover{color:var(--bad);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;}
+.modal-btn{padding:7px 16px;border-radius:6px;font-size:.82rem;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text-dim);transition:all .15s;}
+.modal-btn:hover{border-color:var(--teal);color:var(--teal);}
+.toast{position:fixed;bottom:60px;right:20px;background:var(--surface);border:1px solid var(--teal);color:var(--teal);padding:9px 18px;border-radius:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .3s;z-index:600;pointer-events:none;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>
+    <svg class="logo-mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="6" fill="#07080e"/>
+      <path d="M6 21V10" stroke="#00c8e0" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M6 10L16 17.6" stroke="#00c8e0" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M16 17.6L26 10" stroke="#e8f4ff" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M26 21V10" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M16 17.6V23" stroke="#7cff3a" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+    PromptBoard
+  </h1>
+  <input class="board-name" id="board-name" type="text" value="Untitled Board" />
+  <div class="spacer"></div>
+  <button class="tbtn" onclick="undo()" id="btn-undo" title="Ctrl+Z" disabled>↩ Undo</button>
+  <button class="tbtn" onclick="redo()" id="btn-redo" title="Ctrl+Y" disabled>↪ Redo</button>
+  <div class="sep"></div>
+  <button class="tbtn" onclick="clearCanvas()">🗑 Clear</button>
+  <button class="tbtn" onclick="openBoardModal()">📂 Saved boards</button>
+  <button class="tbtn" onclick="saveBoard()">💾 Save</button>
+  <div class="sep"></div>
+  <button class="tbtn accent" onclick="copyPrompt()">📋 Copy prompt</button>
+  <button class="tbtn accent" onclick="exportMd()">⬇ Export .md</button>
+</header>
+
+<div class="app">
+  <aside class="sidebar">
+    <button class="sbar-btn" onclick="addBlock('text')" title="Text block"><span style="font-size:.9rem">📝</span><span class="sbar-tooltip">Text</span></button>
+    <button class="sbar-btn" onclick="addBlock('image')" title="Image block"><span style="font-size:.9rem">🖼️</span><span class="sbar-tooltip">Image</span></button>
+    <button class="sbar-btn" onclick="addBlock('flow')" title="Flow node"><span style="font-size:.9rem">🔷</span><span class="sbar-tooltip">Flow node</span></button>
+    <div class="sbar-sep"></div>
+    <button class="sbar-btn" id="btn-connect" onclick="toggleConnectMode()" title="Connect blocks with an arrow">↗<span class="sbar-tooltip">Connect</span></button>
+    <div class="sbar-sep"></div>
+    <button class="sbar-btn" id="btn-voice" onclick="toggleGlobalVoice()" title="Voice dictation">🎤<span class="sbar-tooltip">Voice (Chromium: live · Firefox: record)</span></button>
+    <div class="sbar-sep"></div>
+    <button class="sbar-btn" onclick="duplicateSelected()" title="Duplicate">⧉<span class="sbar-tooltip">Duplicate</span></button>
+  </aside>
+
+  <div class="canvas-area" id="canvas-area">
+    <div class="canvas-scroll" id="canvas-scroll">
+      <div class="canvas" id="canvas"
+           ondragover="onDragOver(event)"
+           ondrop="onFileDrop(event)"
+           onpaste="onPaste(event)">
+        <svg id="arrows-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0,10 3.5,0 7" fill="#6677aa"/>
+            </marker>
+            <marker id="ah-sel" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0,10 3.5,0 7" fill="#00c8e0"/>
+            </marker>
+            <marker id="ah-hover" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0,10 3.5,0 7" fill="#F0A020"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <aside class="props" id="props">
+    <div class="props-empty">Select a block<br>to edit it<br><br><span style="font-size:.75rem;opacity:.6">use ↗ to connect<br>two blocks with an arrow</span></div>
+  </aside>
+</div>
+
+<div class="export-panel" id="export-panel">
+  <div class="export-header" onclick="toggleExport()">
+    <span>📤 Prompt Preview</span>
+    <span class="arrow">▲</span>
+  </div>
+  <div class="export-body">
+    <div class="export-col" style="max-width:60%">
+      <h4>Generated prompt</h4>
+      <div class="prompt-preview" id="prompt-preview">— waiting for content —</div>
+    </div>
+    <div class="export-col" style="max-width:40%;justify-content:flex-end">
+      <h4>Export</h4>
+      <div class="export-actions">
+        <button class="ebtn-copy" onclick="copyPrompt()">📋 Copy text</button>
+        <button class="ebtn-md" onclick="exportMd()">⬇ Download .md</button>
+      </div>
+      <div style="margin-top:8px">
+        <label style="font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="chk-base64" checked> Include base64 images
+        </label>
+        <p style="font-size:.68rem;color:var(--text-muted);margin-top:4px;line-height:1.5">Disable for text-only AI</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="voice-indicator" id="voice-indicator">🎤 Listening…</div>
+
+<div class="modal-bg" id="boards-modal">
+  <div class="modal">
+    <h3>📂 Saved boards</h3>
+    <div class="board-list" id="board-list"></div>
+    <div class="modal-actions">
+      <button class="modal-btn" onclick="closeBoardModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const S = {
+  blocks: [],
+  arrows: [],
+  selected: null,
+  selectedArrow: null,
+  history: [],
+  histIdx: -1,
+  nextId: 1,
+  nextArrowId: 1,
+  drag: null,
+  resize: null,
+  connectMode: false,
+  connectFrom: null,
+  voiceActive: false,
+  voiceTargetId: null,
+  recognition: null,
+  mediaRecorder: null,
+};
+
+const FLOW_SHAPES = { process:'▭ Process', decision:'◇ Decision', terminal:'○ Terminal' };
+
+// ─── HISTORY ─────────────────────────────────────────────────────────────────
+function snap() { return JSON.stringify({ blocks: S.blocks, arrows: S.arrows, nextId: S.nextId, nextArrowId: S.nextArrowId }); }
+
+function pushHistory() {
+  S.history = S.history.slice(0, S.histIdx + 1);
+  S.history.push(snap());
+  if (S.history.length > 60) S.history.shift();
+  S.histIdx = S.history.length - 1;
+  updateUndoRedo();
+}
+function restoreSnap(s) {
+  const d = JSON.parse(s);
+  S.blocks = d.blocks; S.arrows = d.arrows;
+  S.nextId = d.nextId; S.nextArrowId = d.nextArrowId;
+  S.selected = null; S.selectedArrow = null;
+}
+function undo() {
+  if (S.histIdx <= 0) return;
+  S.histIdx--;
+  restoreSnap(S.history[S.histIdx]);
+  render(); renderProps(); updateUndoRedo();
+}
+function redo() {
+  if (S.histIdx >= S.history.length - 1) return;
+  S.histIdx++;
+  restoreSnap(S.history[S.histIdx]);
+  render(); renderProps(); updateUndoRedo();
+}
+function updateUndoRedo() {
+  document.getElementById('btn-undo').disabled = S.histIdx <= 0;
+  document.getElementById('btn-redo').disabled = S.histIdx >= S.history.length - 1;
+}
+
+// ─── BLOCKS ──────────────────────────────────────────────────────────────────
+const DEFAULTS = {
+  text:  { w:280, h:160, content:'', title:'' },
+  image: { w:280, h:200, content:'', title:'', imageData:null },
+  flow:  { w:200, h:80,  content:'', shape:'process' },
+};
+
+function addBlock(type, x, y) {
+  const scroll = document.getElementById('canvas-scroll');
+  const id = `b${S.nextId++}`;
+  const off = S.blocks.length % 6;
+  S.blocks.push({
+    id, type,
+    x: x ?? scroll.scrollLeft + 60 + off * 24,
+    y: y ?? scroll.scrollTop  + 60 + off * 24,
+    ...JSON.parse(JSON.stringify(DEFAULTS[type]))
+  });
+  selectBlock(id);
+  pushHistory(); render(); renderProps();
+  if (type === 'text' || type === 'flow') {
+    setTimeout(() => { const el = document.querySelector(`[data-id="${id}"] .block-content`); if (el) el.focus(); }, 60);
+  }
+}
+
+function getBlock(id) { return S.blocks.find(b => b.id === id); }
+function getArrow(id) { return S.arrows.find(a => a.id === id); }
+
+function updateBlock(id, upd) {
+  const b = getBlock(id);
+  if (b) Object.assign(b, upd);
+}
+
+function deleteBlock(id) {
+  S.blocks = S.blocks.filter(b => b.id !== id);
+  S.arrows = S.arrows.filter(a => a.fromId !== id && a.toId !== id);
+  if (S.selected === id) S.selected = null;
+  pushHistory(); render(); renderProps();
+}
+
+function deleteArrow(id) {
+  S.arrows = S.arrows.filter(a => a.id !== id);
+  if (S.selectedArrow === id) S.selectedArrow = null;
+  pushHistory(); render(); renderProps();
+}
+
+function duplicateSelected() {
+  if (!S.selected) return;
+  const b = getBlock(S.selected);
+  if (!b) return;
+  const id = `b${S.nextId++}`;
+  S.blocks.push({ ...JSON.parse(JSON.stringify(b)), id, x: b.x + 28, y: b.y + 28 });
+  selectBlock(id);
+  pushHistory(); render(); renderProps();
+}
+
+function selectBlock(id) {
+  S.selected = id; S.selectedArrow = null;
+  document.querySelectorAll('.block').forEach(el => el.classList.toggle('selected', el.dataset.id === id));
+  renderProps();
+  renderArrows();
+}
+
+function selectArrow(id) {
+  S.selectedArrow = id; S.selected = null;
+  document.querySelectorAll('.block').forEach(el => el.classList.remove('selected'));
+  renderProps();
+  renderArrows();
+}
+
+function clearCanvas() {
+  if ((S.blocks.length || S.arrows.length) && !confirm('Clear the canvas?')) return;
+  S.blocks = []; S.arrows = []; S.selected = null; S.selectedArrow = null;
+  pushHistory(); render(); renderProps();
+}
+
+// ─── CONNECT MODE ─────────────────────────────────────────────────────────────
+function toggleConnectMode() {
+  S.connectMode = !S.connectMode;
+  S.connectFrom = null;
+  const btn = document.getElementById('btn-connect');
+  const canvas = document.getElementById('canvas');
+  btn.classList.toggle('connect-on', S.connectMode);
+  canvas.classList.toggle('connect-mode', S.connectMode);
+  if (!S.connectMode) document.querySelectorAll('.block.connect-source').forEach(el => el.classList.remove('connect-source'));
+}
+
+function handleConnectClick(blockId) {
+  if (!S.connectMode) return false;
+  if (!S.connectFrom) {
+    S.connectFrom = blockId;
+    document.querySelector(`[data-id="${blockId}"]`)?.classList.add('connect-source');
+    document.getElementById('btn-connect').classList.add('connect-pending');
+    toast('Click a second block to connect');
+    return true;
+  }
+  if (S.connectFrom === blockId) {
+    document.querySelectorAll('.block.connect-source').forEach(el => el.classList.remove('connect-source'));
+    S.connectFrom = null;
+    document.getElementById('btn-connect').classList.remove('connect-pending');
+    return true;
+  }
+  const exists = S.arrows.find(a => a.fromId === S.connectFrom && a.toId === blockId);
+  if (!exists) {
+    S.arrows.push({ id:`a${S.nextArrowId++}`, fromId: S.connectFrom, toId: blockId, label:'', labelImage:null });
+    pushHistory();
+  }
+  document.querySelectorAll('.block.connect-source').forEach(el => el.classList.remove('connect-source'));
+  S.connectFrom = null;
+  document.getElementById('btn-connect').classList.remove('connect-pending');
+  render(); renderProps();
+  return true;
+}
+
+// ─── GEOMETRY ────────────────────────────────────────────────────────────────
+function blockRect(id) {
+  const b = getBlock(id);
+  if (!b) return null;
+  return { x: b.x, y: b.y, w: b.w, h: b.h, cx: b.x + b.w/2, cy: b.y + b.h/2 };
+}
+
+function edgePoint(fromId, toId) {
+  const f = blockRect(fromId), t = blockRect(toId);
+  if (!f || !t) return { x: f?.cx ?? 0, y: f?.cy ?? 0 };
+  const dx = t.cx - f.cx, dy = t.cy - f.cy;
+  const absDx = Math.abs(dx), absDy = Math.abs(dy);
+  if (absDx < 0.001 && absDy < 0.001) return { x: f.cx, y: f.cy };
+  let ex, ey;
+  if (absDy === 0 || (absDx / absDy) > (f.w / f.h)) {
+    ex = f.cx + (dx > 0 ? f.w/2 : -f.w/2);
+    ey = f.cy + dy * (f.w/2) / absDx;
+  } else {
+    ey = f.cy + (dy > 0 ? f.h/2 : -f.h/2);
+    ex = f.cx + dx * (f.h/2) / absDy;
+  }
+  return { x: ex, y: ey };
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function render() {
+  const canvas = document.getElementById('canvas');
+  canvas.querySelectorAll('.block').forEach(el => el.remove());
+  canvas.querySelectorAll('.arrow-label').forEach(el => el.remove());
+
+  S.blocks.forEach(b => {
+    const div = document.createElement('div');
+    div.className = `block block-${b.type}${b.type==='flow'?' shape-'+b.shape:''}${b.id === S.selected ? ' selected' : ''}`;
+    div.dataset.id = b.id;
+    div.style.cssText = `left:${b.x}px;top:${b.y}px;width:${b.w}px;${b.type!=='text'?`height:${b.h}px`:''};`;
+    div.innerHTML = buildBlockHTML(b);
+    bindBlock(div, b);
+    canvas.appendChild(div);
+  });
+
+  renderArrows();
+  updatePromptPreview();
+}
+
+function buildBlockHTML(b) {
+  const typeLabels = { text:'📝 Text', image:'🖼️ Image', flow: FLOW_SHAPES[b.shape] || '🔷 Node' };
+  let body = '';
+  if (b.type === 'text') {
+    body = `<textarea class="block-content" placeholder="Context, task, notes…" oninput="onInput('${b.id}','content',this.value)">${esc(b.content)}</textarea>`;
+  } else if (b.type === 'image') {
+    body = b.imageData
+      ? `<div class="block-img-wrap"><img src="${b.imageData}" alt="${esc(b.title)}"><div class="img-desc">${esc(b.title)||'No description'}</div></div>`
+      : `<div class="drop-zone" onclick="pickImage('${b.id}')">🖼️ Click or drag<br>an image here<input type="file" accept="image/*" style="display:none" onchange="loadFile('${b.id}',this)"></div>`;
+  } else if (b.type === 'flow') {
+    body = `<textarea class="block-content" style="text-align:center;font-weight:600" placeholder="Node description…" oninput="onInput('${b.id}','content',this.value)">${esc(b.content)}</textarea>`;
+  }
+
+  return `
+    <div class="block-header" data-drag="${b.id}">
+      <span class="block-type-label">${typeLabels[b.type]}</span>
+      ${b.type==='text'?`<button class="block-hbtn" onclick="voiceForBlock('${b.id}')" title="Dictate">🎤</button>`:''}
+      <button class="block-hbtn del" onclick="deleteBlock('${b.id}')" title="Delete">✕</button>
+    </div>
+    <div class="block-body">${body}</div>
+    <div class="resize-handle" data-resize="${b.id}"></div>`;
+}
+
+function bindBlock(div, b) {
+  div.addEventListener('mousedown', e => {
+    if (e.target.closest('.block-hbtn') || e.target.closest('textarea') || e.target.closest('input') || e.target.closest('.resize-handle')) return;
+    if (handleConnectClick(b.id)) return;
+    selectBlock(b.id);
+  });
+
+  const header = div.querySelector('[data-drag]');
+  if (header) {
+    header.addEventListener('mousedown', e => {
+      if (e.target.closest('.block-hbtn')) return;
+      if (S.connectMode) { handleConnectClick(b.id); return; }
+      e.preventDefault();
+      selectBlock(b.id);
+      S.drag = { id: b.id, ox: e.clientX, oy: e.clientY, bx: b.x, by: b.y };
+    });
+  }
+
+  const rh = div.querySelector('.resize-handle');
+  if (rh) {
+    rh.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      S.resize = { id: b.id, sx: e.clientX, sy: e.clientY, ow: b.w, oh: b.h };
+    });
+  }
+}
+
+document.addEventListener('mousemove', e => {
+  if (S.drag) {
+    const b = getBlock(S.drag.id);
+    if (b) {
+      b.x = Math.max(0, S.drag.bx + e.clientX - S.drag.ox);
+      b.y = Math.max(0, S.drag.by + e.clientY - S.drag.oy);
+      const el = document.querySelector(`[data-id="${b.id}"]`);
+      if (el) { el.style.left = b.x+'px'; el.style.top = b.y+'px'; }
+      renderArrows();
+    }
+  }
+  if (S.resize) {
+    const b = getBlock(S.resize.id);
+    if (b) {
+      b.w = Math.max(140, S.resize.ow + e.clientX - S.resize.sx);
+      b.h = Math.max(60,  S.resize.oh + e.clientY - S.resize.sy);
+      const el = document.querySelector(`[data-id="${b.id}"]`);
+      if (el) { el.style.width = b.w+'px'; el.style.height = b.h+'px'; }
+      renderArrows();
+    }
+  }
+});
+document.addEventListener('mouseup', () => {
+  if (S.drag) { pushHistory(); S.drag = null; updatePromptPreview(); }
+  if (S.resize) { pushHistory(); S.resize = null; }
+});
+
+function onInput(id, field, value) {
+  updateBlock(id, { [field]: value });
+  updatePromptPreview();
+  clearTimeout(window._inputTimer);
+  window._inputTimer = setTimeout(pushHistory, 1200);
+}
+
+// ─── ARROWS SVG ───────────────────────────────────────────────────────────────
+function renderArrows() {
+  const svg = document.getElementById('arrows-svg');
+  const canvas = document.getElementById('canvas');
+
+  svg.querySelectorAll('.arrow-g').forEach(el => el.remove());
+  canvas.querySelectorAll('.arrow-label').forEach(el => el.remove());
+
+  S.arrows.forEach(a => {
+    const f = blockRect(a.fromId), t = blockRect(a.toId);
+    if (!f || !t) return;
+
+    const p1 = edgePoint(a.fromId, a.toId);
+    const p2 = edgePoint(a.toId, a.fromId);
+    const mx = (p1.x + p2.x) / 2;
+    const my = (p1.y + p2.y) / 2;
+
+    const dx = p2.x - p1.x, dy = p2.y - p1.y;
+    const len = Math.sqrt(dx*dx + dy*dy) || 1;
+    const curveOffset = Math.min(60, len * 0.25);
+    const cx = mx - dy/len * curveOffset;
+    const cy = my + dx/len * curveOffset;
+
+    const isSel = a.id === S.selectedArrow;
+    const stroke = isSel ? '#00c8e0' : '#6677aa';
+    const marker = isSel ? 'ah-sel' : 'ah';
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.classList.add('arrow-g');
+
+    const hit = document.createElementNS('http://www.w3.org/2000/svg','path');
+    hit.setAttribute('d', `M ${p1.x} ${p1.y} Q ${cx} ${cy} ${p2.x} ${p2.y}`);
+    hit.setAttribute('stroke', 'transparent');
+    hit.setAttribute('stroke-width', '14');
+    hit.setAttribute('fill', 'none');
+    hit.classList.add('arrow-hit');
+    hit.addEventListener('click', e => { e.stopPropagation(); selectArrow(a.id); });
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M ${p1.x} ${p1.y} Q ${cx} ${cy} ${p2.x} ${p2.y}`);
+    path.setAttribute('stroke', stroke);
+    path.setAttribute('stroke-width', isSel ? '2' : '1.5');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('marker-end', `url(#${marker})`);
+    path.classList.add('arrow-path');
+
+    g.appendChild(hit);
+    g.appendChild(path);
+    svg.appendChild(g);
+
+    const labelDiv = document.createElement('div');
+    labelDiv.className = `arrow-label${isSel?' selected':''}${!a.label?' empty':''}`;
+    labelDiv.style.left = mx + 'px';
+    labelDiv.style.top = my + 'px';
+    labelDiv.textContent = a.label || '+';
+    labelDiv.title = a.label ? a.label : 'Click to add a comment';
+    labelDiv.addEventListener('click', e => { e.stopPropagation(); selectArrow(a.id); });
+    canvas.appendChild(labelDiv);
+  });
+}
+
+// ─── PROPS PANEL ─────────────────────────────────────────────────────────────
+function renderProps() {
+  const panel = document.getElementById('props');
+
+  if (S.selectedArrow) {
+    const a = getArrow(S.selectedArrow);
+    if (!a) { panel.innerHTML = `<div class="props-empty">—</div>`; return; }
+    const fb = getBlock(a.fromId), tb = getBlock(a.toId);
+    const fname = (fb?.content || fb?.title || fb?.id || '?').substring(0,30);
+    const tname = (tb?.content || tb?.title || tb?.id || '?').substring(0,30);
+    panel.innerHTML = `
+      <h3>↗ Connection</h3>
+      <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:12px">${esc(fname)} → ${esc(tname)}</div>
+      <div class="field"><label>Arrow comment</label>
+        <textarea rows="4" placeholder="Describe this connection…" oninput="onArrowInput('${a.id}','label',this.value)">${esc(a.label)}</textarea>
+      </div>
+      <button class="pbtn" onclick="voiceForArrow('${a.id}')">🎤 Dictate</button>
+      <div class="props-sep"></div>
+      <button class="pbtn danger" onclick="deleteArrow('${a.id}')">✕ Delete connection</button>`;
+    return;
+  }
+
+  if (!S.selected) { panel.innerHTML = `<div class="props-empty">Select a block<br>to edit it<br><br><span style="font-size:.75rem;opacity:.6">use ↗ to connect<br>two blocks with an arrow</span></div>`; return; }
+  const b = getBlock(S.selected);
+  if (!b) { panel.innerHTML = `<div class="props-empty">—</div>`; return; }
+
+  let fields = '';
+  if (b.type === 'text') {
+    fields = `
+      <div class="field"><label>Content</label>
+        <textarea rows="6" oninput="onInput('${b.id}','content',this.value);syncBlockTextarea('${b.id}')">${esc(b.content)}</textarea>
+      </div>
+      <div class="field"><label>Label (optional)</label>
+        <input type="text" value="${esc(b.title)}" placeholder="e.g. Goal" oninput="onInput('${b.id}','title',this.value)">
+      </div>
+      <button class="pbtn" onclick="voiceForBlock('${b.id}')">🎤 Voice dictation</button>`;
+  } else if (b.type === 'image') {
+    fields = `
+      <div class="field"><label>Description (for prompt)</label>
+        <input type="text" value="${esc(b.title)}" placeholder="Describe the image…" oninput="onInput('${b.id}','title',this.value)">
+      </div>
+      ${b.imageData ? `<button class="pbtn" onclick="pickImage('${b.id}')">🔄 Replace image</button>` : `<button class="pbtn" onclick="pickImage('${b.id}')">🖼️ Load image</button>`}`;
+  } else if (b.type === 'flow') {
+    fields = `
+      <div class="field"><label>Node text</label>
+        <textarea rows="3" oninput="onInput('${b.id}','content',this.value);syncBlockTextarea('${b.id}')">${esc(b.content)}</textarea>
+      </div>
+      <div class="field"><label>Shape</label>
+        <select onchange="onInput('${b.id}','shape',this.value);render()">
+          ${Object.entries(FLOW_SHAPES).map(([v,l])=>`<option value="${v}"${b.shape===v?' selected':''}>${l}</option>`).join('')}
+        </select>
+      </div>`;
+  }
+
+  panel.innerHTML = `
+    <h3>${b.type}</h3>
+    ${fields}
+    <div class="props-sep"></div>
+    <div class="prow">
+      <div class="field"><label>X</label><input type="number" value="${Math.round(b.x)}" oninput="onInput('${b.id}','x',+this.value);renderBlockPos('${b.id}')"></div>
+      <div class="field"><label>Y</label><input type="number" value="${Math.round(b.y)}" oninput="onInput('${b.id}','y',+this.value);renderBlockPos('${b.id}')"></div>
+    </div>
+    <div class="prow">
+      <div class="field"><label>W</label><input type="number" value="${b.w}" oninput="onInput('${b.id}','w',+this.value);renderBlockPos('${b.id}')"></div>
+      <div class="field"><label>H</label><input type="number" value="${b.h}" oninput="onInput('${b.id}','h',+this.value);renderBlockPos('${b.id}')"></div>
+    </div>
+    <div class="props-sep"></div>
+    <button class="pbtn amber" onclick="startConnectFrom('${b.id}')">↗ Connect from here</button>
+    <button class="pbtn" onclick="duplicateSelected()">⧉ Duplicate block</button>
+    <button class="pbtn danger" onclick="deleteBlock('${b.id}')">✕ Delete block</button>`;
+}
+
+function startConnectFrom(id) {
+  if (!S.connectMode) toggleConnectMode();
+  S.connectFrom = id;
+  document.querySelector(`[data-id="${id}"]`)?.classList.add('connect-source');
+  document.getElementById('btn-connect').classList.add('connect-pending');
+  toast('Click a second block to connect');
+}
+
+function onArrowInput(id, field, value) {
+  const a = getArrow(id);
+  if (a) { a[field] = value; renderArrows(); }
+  clearTimeout(window._inputTimer);
+  window._inputTimer = setTimeout(pushHistory, 1200);
+}
+
+function renderBlockPos(id) {
+  const b = getBlock(id);
+  if (!b) return;
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) { el.style.left=b.x+'px'; el.style.top=b.y+'px'; el.style.width=b.w+'px'; if(b.type!=='text') el.style.height=b.h+'px'; }
+  renderArrows();
+}
+function syncBlockTextarea(id) {
+  const b = getBlock(id);
+  if (!b) return;
+  const ta = document.querySelector(`[data-id="${id}"] .block-content`);
+  if (ta && ta.tagName==='TEXTAREA') ta.value = b.content;
+}
+
+// ─── IMAGE HANDLING ───────────────────────────────────────────────────────────
+function pickImage(id) {
+  const inp = document.querySelector(`[data-id="${id}"] input[type=file]`);
+  if (inp) { inp.click(); return; }
+  const tmp = document.createElement('input');
+  tmp.type = 'file'; tmp.accept = 'image/*';
+  tmp.onchange = () => loadFile(id, tmp);
+  tmp.click();
+}
+function loadFile(id, input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { updateBlock(id, { imageData: e.target.result, title: file.name.replace(/\.[^.]+$/,'') }); pushHistory(); render(); renderProps(); };
+  reader.readAsDataURL(file);
+}
+function onDragOver(e) { e.preventDefault(); }
+function onFileDrop(e) {
+  e.preventDefault();
+  const file = [...(e.dataTransfer.files||[])].find(f => f.type.startsWith('image/'));
+  if (!file) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  const scroll = document.getElementById('canvas-scroll');
+  const x = e.clientX - rect.left + scroll.scrollLeft - 140;
+  const y = e.clientY - rect.top  + scroll.scrollTop  - 40;
+  const id = `b${S.nextId++}`;
+  S.blocks.push({ id, type:'image', x:Math.max(0,x), y:Math.max(0,y), ...JSON.parse(JSON.stringify(DEFAULTS.image)) });
+  selectBlock(id);
+  const reader = new FileReader();
+  reader.onload = ev => { updateBlock(id, { imageData: ev.target.result, title: file.name.replace(/\.[^.]+$/,'') }); pushHistory(); render(); renderProps(); };
+  reader.readAsDataURL(file);
+}
+function onPaste(e) {
+  const img = [...(e.clipboardData?.items||[])].find(i => i.type.startsWith('image/'));
+  if (!img) return;
+  e.preventDefault();
+  const scroll = document.getElementById('canvas-scroll');
+  const id = `b${S.nextId++}`;
+  S.blocks.push({ id, type:'image', x:scroll.scrollLeft+60, y:scroll.scrollTop+60, ...JSON.parse(JSON.stringify(DEFAULTS.image)) });
+  selectBlock(id);
+  const reader = new FileReader();
+  reader.onload = ev => { updateBlock(id, { imageData: ev.target.result, title: 'Pasted image' }); pushHistory(); render(); renderProps(); toast('Image pasted'); };
+  reader.readAsDataURL(img.getAsFile());
+}
+
+// ─── VOICE ────────────────────────────────────────────────────────────────────
+function initRecognition(onResult, onEnd) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+  const r = new SR();
+  r.lang = 'en-US'; r.continuous = true; r.interimResults = false;
+  r.onresult = e => { let t=''; for(let i=e.resultIndex;i<e.results.length;i++) t+=e.results[i][0].transcript+' '; onResult(t.trim()); };
+  r.onend = onEnd; r.onerror = () => stopVoice();
+  return r;
+}
+
+function startMediaVoice(onResult) {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/ogg;codecs=opus';
+    const mr = new MediaRecorder(stream, { mimeType: mime });
+    const chunks = [];
+    mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    mr.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      document.getElementById('voice-indicator').classList.remove('show');
+      showRecordingDialog(new Blob(chunks, { type: mime }), onResult);
+    };
+    mr.start(100);
+    S.mediaRecorder = mr; S.voiceActive = true;
+    const vi = document.getElementById('voice-indicator');
+    vi.innerHTML = '🔴 Recording… <button onclick="stopMediaVoice()" style="margin-left:8px;background:none;border:1px solid rgba(255,255,255,.5);color:white;border-radius:4px;cursor:pointer;padding:2px 8px;font-size:.75rem;">Stop</button>';
+    vi.classList.add('show');
+  }).catch(() => toast('Microphone not accessible — check site permissions', true));
+}
+
+function stopMediaVoice() {
+  if (S.mediaRecorder && S.mediaRecorder.state !== 'inactive') S.mediaRecorder.stop();
+  S.voiceActive = false;
+}
+
+async function showRecordingDialog(blob, onResult) {
+  document.getElementById('rec-dialog')?.remove();
+  const url = URL.createObjectURL(blob);
+  const d = document.createElement('div');
+  d.id = 'rec-dialog';
+  d.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:700;display:flex;align-items:center;justify-content:center;';
+  d.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;width:440px;max-width:90vw;display:flex;flex-direction:column;gap:12px;">
+      <h3 style="font-size:.9rem;font-weight:600">🎤 Recording</h3>
+      <audio controls src="${url}" style="width:100%;"></audio>
+      <div id="rec-status" style="font-size:.72rem;color:var(--amber);display:flex;align-items:center;gap:6px;">
+        <span id="rec-spin" style="display:inline-block;animation:pulse 1s infinite">⏳</span> Transcribing…
+      </div>
+      <textarea id="rec-ta" rows="4" disabled placeholder="Transcribing…"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;font-family:inherit;font-size:.82rem;outline:none;resize:vertical;opacity:.5;transition:opacity .2s;"></textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="document.getElementById('rec-dialog').remove()" style="padding:7px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;">Cancel</button>
+        <button id="rec-apply" onclick="applyRecText()" disabled style="padding:7px 14px;background:rgba(0,200,224,.1);border:1px solid var(--teal);color:var(--teal);border-radius:6px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:600;opacity:.4;">✓ Use text</button>
+      </div>
+    </div>`;
+  document.body.appendChild(d);
+  window._recOnResult = onResult;
+  d.addEventListener('click', e => { if (e.target === d) d.remove(); });
+
+  try {
+    const r = await fetch('http://127.0.0.1:4324/transcribe', {
+      method: 'POST',
+      body: blob,
+      headers: { 'Content-Type': blob.type },
+      signal: AbortSignal.timeout(60000),
+    });
+    const data = await r.json();
+    const statusEl = document.getElementById('rec-status');
+    const ta = document.getElementById('rec-ta');
+    const applyBtn = document.getElementById('rec-apply');
+    if (!statusEl) return;
+    if (data.ok && data.text) {
+      ta.value = data.text;
+      ta.disabled = false; ta.style.opacity = '1';
+      applyBtn.disabled = false; applyBtn.style.opacity = '1';
+      statusEl.innerHTML = '<span style="color:var(--teal)">✓</span> <span style="color:var(--teal)">Transcribed — edit if needed</span>';
+      ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    } else {
+      ta.disabled = false; ta.style.opacity = '1'; ta.placeholder = 'Type what you said…';
+      applyBtn.disabled = false; applyBtn.style.opacity = '1';
+      statusEl.innerHTML = `<span style="color:var(--bad)">⚠</span> <span style="color:var(--bad);font-size:.68rem">${data.error || 'Transcription error'}</span>`;
+      ta.focus();
+    }
+  } catch {
+    const statusEl = document.getElementById('rec-status');
+    const ta = document.getElementById('rec-ta');
+    const applyBtn = document.getElementById('rec-apply');
+    if (!statusEl) return;
+    ta.disabled = false; ta.style.opacity = '1'; ta.placeholder = 'Type what you said…';
+    applyBtn.disabled = false; applyBtn.style.opacity = '1';
+    statusEl.innerHTML = '<span style="color:var(--text-muted)">ℹ</span> <span style="color:var(--text-muted);font-size:.68rem">Transcriber not active — type manually</span>';
+    ta.focus();
+  }
+}
+
+function applyRecText() {
+  const text = document.getElementById('rec-ta')?.value?.trim();
+  if (text && window._recOnResult) window._recOnResult(text);
+  document.getElementById('rec-dialog')?.remove();
+  window._recOnResult = null;
+  pushHistory();
+}
+
+function makeVoiceHandler(onResult) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    S.recognition = initRecognition(onResult, () => { if (S.voiceActive) stopVoice(); });
+    if (S.recognition) {
+      S.recognition.start(); S.voiceActive = true;
+      const vi = document.getElementById('voice-indicator');
+      vi.innerHTML = '🎤 Listening…'; vi.classList.add('show');
+    }
+  } else {
+    startMediaVoice(onResult);
+  }
+}
+
+function voiceForBlock(id) {
+  stopVoice(); selectBlock(id); S.voiceTargetId = id;
+  makeVoiceHandler(text => {
+    const b = getBlock(id); if (!b) return;
+    b.content = (b.content ? b.content + ' ' : '') + text;
+    syncBlockTextarea(id);
+    const ta = document.querySelector('#props textarea'); if (ta) ta.value = b.content;
+    updatePromptPreview();
+  });
+}
+
+function voiceForArrow(id) {
+  stopVoice();
+  makeVoiceHandler(text => {
+    const a = getArrow(id); if (!a) return;
+    a.label = (a.label ? a.label + ' ' : '') + text;
+    const ta = document.querySelector('#props textarea'); if (ta) ta.value = a.label;
+    renderArrows();
+  });
+}
+
+function toggleGlobalVoice() {
+  if (S.voiceActive) { stopVoice(); return; }
+  const b = S.selected ? getBlock(S.selected) : null;
+  if (b && (b.type === 'text' || b.type === 'flow')) { voiceForBlock(b.id); return; }
+  addBlock('text');
+  setTimeout(() => { if (S.selected) voiceForBlock(S.selected); }, 100);
+}
+
+function stopVoice() {
+  S.voiceActive = false; S.voiceTargetId = null;
+  if (S.recognition) { try { S.recognition.stop(); } catch {} S.recognition = null; }
+  if (S.mediaRecorder) {
+    const mr = S.mediaRecorder; S.mediaRecorder = null;
+    mr.ondataavailable = null;
+    mr.onstop = () => { try { mr.stream?.getTracks().forEach(t => t.stop()); } catch {} };
+    if (mr.state !== 'inactive') try { mr.stop(); } catch {}
+  }
+  document.getElementById('voice-indicator').classList.remove('show');
+  document.getElementById('btn-voice').classList.remove('voice-on');
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+function buildPrompt(markdown = false) {
+  const name = document.getElementById('board-name').value.trim() || 'PromptBoard';
+  const useBase64 = document.getElementById('chk-base64').checked;
+  const sorted = [...S.blocks].sort((a,b) => a.y !== b.y ? a.y - b.y : a.x - b.x);
+  if (!sorted.length) return '';
+
+  let out = '';
+  if (markdown) out += `# ${name}\n\n`;
+
+  sorted.forEach(b => {
+    const label = b.title ? `**${b.title}**` : null;
+    if (b.type === 'text' && b.content.trim()) {
+      if (markdown) out += (label ? label + '\n' : '') + b.content.trim() + '\n\n';
+      else out += (b.title ? b.title + ':\n' : '') + b.content.trim() + '\n\n';
+    } else if (b.type === 'image') {
+      const desc = b.title || 'image';
+      if (b.imageData && useBase64 && markdown) out += `![${desc}](${b.imageData})\n\n`;
+      else out += `[Image: ${desc}${b.imageData ? '' : ' — not loaded'}]\n\n`;
+    } else if (b.type === 'flow' && b.content.trim()) {
+      const shapeLabel = FLOW_SHAPES[b.shape] || 'Node';
+      out += markdown ? `**[${shapeLabel}]** ${b.content.trim()}\n\n` : `[${shapeLabel}] ${b.content.trim()}\n\n`;
+    }
+  });
+
+  if (S.arrows.length) {
+    out += markdown ? '## Flow\n\n' : 'FLOW:\n';
+    S.arrows.forEach(a => {
+      const fb = getBlock(a.fromId), tb = getBlock(a.toId);
+      if (!fb || !tb) return;
+      const fn = (fb.content || fb.title || fb.id).substring(0,40).trim();
+      const tn = (tb.content || tb.title || tb.id).substring(0,40).trim();
+      const lbl = a.label ? ` (${a.label})` : '';
+      out += `${fn} → ${tn}${lbl}\n`;
+    });
+    out += '\n';
+  }
+
+  return out.trim();
+}
+
+function updatePromptPreview() {
+  const prev = document.getElementById('prompt-preview');
+  const text = buildPrompt(true);
+  prev.textContent = text || '— no content —';
+}
+function copyPrompt() {
+  const text = buildPrompt(false);
+  if (!text) { toast('Nothing to copy', true); return; }
+  navigator.clipboard.writeText(text).then(() => toast('Prompt copied!')).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Prompt copied!');
+  });
+}
+function exportMd() {
+  const text = buildPrompt(true);
+  if (!text) { toast('Nothing to export', true); return; }
+  const name = (document.getElementById('board-name').value.trim() || 'promptboard').replace(/\s+/g,'-').toLowerCase();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type:'text/markdown' }));
+  a.download = `${name}.md`; a.click();
+  toast('Downloaded .md');
+}
+
+// ─── SAVE / LOAD ─────────────────────────────────────────────────────────────
+const STORE_KEY = 'promptboard-boards';
+
+function saveBoard() {
+  const name = document.getElementById('board-name').value.trim() || 'Untitled Board';
+  const boards = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+  const idx = boards.findIndex(b => b.name === name);
+  const entry = { name, blocks: JSON.parse(JSON.stringify(S.blocks)), arrows: JSON.parse(JSON.stringify(S.arrows)), nextId: S.nextId, nextArrowId: S.nextArrowId, savedAt: new Date().toISOString() };
+  if (idx >= 0) boards[idx] = entry; else boards.unshift(entry);
+  if (boards.length > 20) boards.splice(20);
+  localStorage.setItem(STORE_KEY, JSON.stringify(boards));
+  toast(`Board "${name}" saved`);
+}
+function openBoardModal() {
+  const boards = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+  const list = document.getElementById('board-list');
+  if (!boards.length) list.innerHTML = '<p style="color:var(--text-muted);font-size:.8rem">No saved boards</p>';
+  else list.innerHTML = boards.map((b,i) => `
+    <div class="board-item" onclick="loadBoard(${i})">
+      <div><div class="board-item-name">${esc(b.name)}</div>
+      <div class="board-item-date">${new Date(b.savedAt).toLocaleString('en-US')} — ${b.blocks.length} blocks, ${(b.arrows||[]).length} arrows</div></div>
+      <button class="board-item-del" onclick="event.stopPropagation();deleteBoard(${i})">✕</button>
+    </div>`).join('');
+  document.getElementById('boards-modal').classList.add('show');
+}
+function closeBoardModal() { document.getElementById('boards-modal').classList.remove('show'); }
+function loadBoard(idx) {
+  const boards = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+  const b = boards[idx]; if (!b) return;
+  S.blocks = b.blocks; S.arrows = b.arrows || [];
+  S.nextId = b.nextId || (Math.max(0,...b.blocks.map(bl=>+bl.id.slice(1)))+1);
+  S.nextArrowId = b.nextArrowId || 1;
+  S.selected = null; S.selectedArrow = null;
+  S.history = []; S.histIdx = -1;
+  document.getElementById('board-name').value = b.name;
+  pushHistory(); render(); renderProps(); closeBoardModal();
+  toast(`Board "${b.name}" loaded`);
+}
+function deleteBoard(idx) {
+  const boards = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+  const name = boards[idx]?.name;
+  boards.splice(idx,1);
+  localStorage.setItem(STORE_KEY, JSON.stringify(boards));
+  openBoardModal(); toast(`Board "${name}" deleted`);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function toggleExport() { document.getElementById('export-panel').classList.toggle('collapsed'); }
+function toast(msg, isErr=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = isErr ? 'var(--bad)' : 'var(--teal)';
+  el.style.color = isErr ? 'var(--bad)' : 'var(--teal)';
+  el.classList.add('show');
+  clearTimeout(window._toast);
+  window._toast = setTimeout(() => el.classList.remove('show'), 2500);
+}
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if ((e.ctrlKey||e.metaKey) && e.key==='z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  if ((e.ctrlKey||e.metaKey) && (e.key==='y'||(e.key==='z'&&e.shiftKey))) { e.preventDefault(); redo(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='s') { e.preventDefault(); saveBoard(); }
+  if ((e.ctrlKey||e.metaKey) && e.key==='c' && S.selected) duplicateSelected();
+  if (e.key==='Delete'||e.key==='Backspace') {
+    if (S.selectedArrow) deleteArrow(S.selectedArrow);
+    else if (S.selected) deleteBlock(S.selected);
+  }
+  if (e.key==='Escape') {
+    if (S.connectMode) { toggleConnectMode(); return; }
+    S.selected = null; S.selectedArrow = null;
+    document.querySelectorAll('.block').forEach(el=>el.classList.remove('selected'));
+    renderProps(); renderArrows();
+  }
+});
+
+document.getElementById('canvas').addEventListener('mousedown', e => {
+  if (!e.target.closest('.block') && !e.target.closest('.arrow-label')) {
+    if (S.connectMode && S.connectFrom) {
+      document.querySelectorAll('.block.connect-source').forEach(el=>el.classList.remove('connect-source'));
+      S.connectFrom = null;
+      document.getElementById('btn-connect').classList.remove('connect-pending');
+    }
+    S.selected = null; S.selectedArrow = null;
+    document.querySelectorAll('.block').forEach(el=>el.classList.remove('selected'));
+    renderProps(); renderArrows();
+  }
+});
+
+document.getElementById('board-name').addEventListener('keydown', e => { if(e.key==='Enter') e.target.blur(); });
+document.getElementById('chk-base64').addEventListener('change', updatePromptPreview);
+document.getElementById('boards-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeBoardModal(); });
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+pushHistory();
+</script>
+</body>
+</html>

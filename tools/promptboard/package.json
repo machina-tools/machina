@@ -1,0 +1,7 @@
+{
+  "name": "@machina-tools/promptboard",
+  "version": "1.0.0",
+  "description": "Visual canvas for building AI prompts — drag text, images, and flow nodes, connect them with arrows, export as .md or copy to clipboard",
+  "keywords": ["prompt-engineering", "ai", "canvas", "visual", "prompts"],
+  "license": "MIT"
+}
