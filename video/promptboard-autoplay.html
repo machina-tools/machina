@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>PromptBoard Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #07080e;
+    --surface:  #111220;
+    --surface2: #181930;
+    --border:   #1f2040;
+    --teal:     #00c8e0;
+    --accent:   #7c3aed;
+    --amber:    #f59e0b;
+    --text:     #f0f4ff;
+    --muted:    #6677aa;
+    --red:      #ef4444;
+    --green:    #22c55e;
+    --font:     'Inter', sans-serif;
+    --mono:     'JetBrains Mono', monospace;
+  }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: #000;
+    font-family: var(--font);
+    color: var(--text);
+    user-select: none;
+  }
+
+  /* ── PLAY SCREEN ── */
+  #play-screen {
+    position: fixed;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    gap: 32px;
+  }
+  #play-screen .brand {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--teal);
+    letter-spacing: -1px;
+  }
+  #play-screen .sub {
+    font-size: 22px;
+    color: var(--muted);
+  }
+  #play-btn {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: var(--teal);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 80px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 60px rgba(0,200,224,0.4);
+  }
+  #play-btn:hover { transform: scale(1.08); box-shadow: 0 0 90px rgba(0,200,224,0.6); }
+  #play-screen .hint { font-size: 18px; color: var(--muted); margin-top: 8px; }
+
+  /* ── PROGRESS BAR ── */
+  #progress-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 1920px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    z-index: 8888;
+    display: none;
+  }
+  #progress-bar {
+    height: 100%;
+    background: var(--teal);
+    width: 0%;
+    transition: width 0.5s linear;
+  }
+  body.show-progress #progress-wrap { display: block; }
+
+  /* ── FADE OVERLAY ── */
+  #fade {
+    position: fixed;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    background: #000;
+    z-index: 8000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  #fade.black { opacity: 1; pointer-events: all; }
+
+  /* ── CURSOR ── */
+  #cursor {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 0 8px rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.5);
+    z-index: 9990;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    top: 540px;
+    left: 960px;
+    transition: top 0.8s ease-in-out, left 0.8s ease-in-out;
+    display: none;
+  }
+  #cursor.fast { transition: top 0.4s ease-in-out, left 0.4s ease-in-out; }
+  #cursor.slow { transition: top 1.5s ease-in-out, left 1.5s ease-in-out; }
+  #cursor.instant { transition: none; }
+  #cursor .ripple {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%) scale(1);
+    opacity: 0;
+  }
+  #cursor .ripple.active {
+    animation: rippleAnim 0.5s ease-out forwards;
+  }
+  @keyframes rippleAnim {
+    0%   { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+    100% { transform: translate(-50%,-50%) scale(5); opacity: 0; }
+  }
+
+  /* ── CAPTION ── */
+  #caption {
+    position: fixed;
+    bottom: 48px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.78);
+    color: #fff;
+    font-size: 26px;
+    font-weight: 500;
+    padding: 16px 40px;
+    border-radius: 10px;
+    z-index: 7000;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    text-align: center;
+    max-width: 1400px;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+  }
+  #caption.visible { opacity: 1; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    top: 32px;
+    right: 48px;
+    padding: 14px 24px;
+    background: rgba(0,200,224,0.12);
+    border: 1px solid rgba(0,200,224,0.45);
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--teal);
+    z-index: 7500;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.3s, transform 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #toast.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── SCENES ── */
+  .scene {
+    position: fixed;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    background: var(--bg);
+    display: none;
+    overflow: hidden;
+  }
+  .scene.active { display: block; }
+
+  /* ============================
+     SCENE 0 — Title Cards
+     ============================ */
+  #scene0 {
+    background: #000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+  }
+  #scene0.active { display: flex; }
+
+  .title-card-main {
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    max-width: 1200px;
+    line-height: 1.25;
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .title-card-main.visible { opacity: 1; transform: translateY(0); }
+  .title-card-sub {
+    font-size: 30px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 1100px;
+    line-height: 1.5;
+    opacity: 0;
+    transition: opacity 0.7s ease 0.2s;
+  }
+  .title-card-sub.visible { opacity: 1; }
+
+  .title-card-line2 {
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--teal);
+    text-align: center;
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .title-card-line2.visible { opacity: 1; transform: translateY(0); }
+
+  /* ============================
+     SCENE 1 — PromptBoard UI
+     ============================ */
+  #scene1 {
+    display: none;
+    flex-direction: column;
+  }
+  #scene1.active { display: flex; }
+
+  /* Topbar */
+  .pb-topbar {
+    width: 1920px;
+    height: 56px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 100;
+  }
+  .pb-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--teal);
+    letter-spacing: -0.3px;
+    margin-right: 8px;
+  }
+  .pb-board-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+  }
+  .pb-divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+  .pb-topbtn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background 0.15s, color 0.15s;
+  }
+  .pb-topbtn:hover { background: var(--surface2); color: var(--text); }
+  .pb-topbtn.primary {
+    background: var(--teal);
+    color: #050810;
+    border-color: var(--teal);
+    font-weight: 600;
+  }
+  .pb-topbtn.primary.pulse {
+    animation: btnPulse 0.9s ease-in-out 2;
+  }
+  @keyframes btnPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,200,224,0); }
+    50%      { box-shadow: 0 0 0 10px rgba(0,200,224,0.25); }
+  }
+  .pb-spacer { flex: 1; }
+
+  /* Main layout */
+  .pb-layout {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  .pb-sidebar {
+    width: 64px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .pb-sidebar-item {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+  }
+  .pb-sidebar-item:hover,
+  .pb-sidebar-item.active { background: var(--surface2); }
+  .pb-sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 24px;
+    background: var(--teal);
+    border-radius: 0 2px 2px 0;
+  }
+  .pb-sidebar-sep {
+    width: 32px;
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+  }
+
+  /* Canvas */
+  .pb-canvas-wrap {
+    flex: 1;
+    position: relative;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle, rgba(31,32,64,0.7) 1px, transparent 1px);
+    background-size: 24px 24px;
+    overflow: hidden;
+  }
+
+  /* SVG arrows layer */
+  #arrows-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* Blocks */
+  .pb-block {
+    position: absolute;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    min-width: 280px;
+  }
+  .pb-block.visible { opacity: 1; transform: scale(1) translateY(0); }
+
+  .pb-block-header {
+    height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+  .pb-block-type { opacity: 0.9; }
+  .pb-block-del {
+    margin-left: auto;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    cursor: pointer;
+  }
+  .pb-block-body {
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    min-height: 60px;
+    background: var(--surface2);
+  }
+
+  /* Header color variants */
+  .header-teal   { background: rgba(0,200,224,0.18); color: var(--teal); }
+  .header-purple { background: rgba(124,58,237,0.22); color: #a78bfa; }
+  .header-amber  { background: rgba(245,158,11,0.18); color: var(--amber); }
+
+  /* Resize handle */
+  .pb-resize {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    cursor: se-resize;
+    opacity: 0.3;
+  }
+  .pb-resize::before {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    border-style: solid;
+    border-width: 0 0 8px 8px;
+    border-color: transparent transparent var(--muted) transparent;
+  }
+
+  /* Code screenshot block */
+  .code-screenshot {
+    background: #0d0f1a;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: #abb2bf;
+  }
+  .code-kw   { color: #c678dd; }
+  .code-fn   { color: #61afef; }
+  .code-str  { color: #98c379; }
+  .code-cmt  { color: #5c6370; font-style: italic; }
+  .code-err  { color: #e06c75; }
+  .code-num  { color: #d19a66; }
+
+  /* Flow node */
+  .flow-node {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    white-space: nowrap;
+  }
+  .flow-node.visible { opacity: 1; transform: translateY(0); }
+  .flow-node.process  { background: rgba(0,200,224,0.08); border-color: rgba(0,200,224,0.3); color: var(--teal); }
+  .flow-node.decision { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3); color: var(--amber); transform-origin: center; }
+  .flow-node.terminal { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.3); color: #22c55e; }
+
+  .flow-block-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  /* Right props panel */
+  .pb-props {
+    width: 260px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .props-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .props-field {
+    margin-bottom: 10px;
+  }
+  .props-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .props-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: var(--font);
+  }
+  .props-color-row {
+    display: flex;
+    gap: 8px;
+  }
+  .props-color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+  .props-color-swatch.active { border-color: var(--text); }
+
+  /* Voice indicator */
+  #voice-bar {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.4);
+    border-radius: 999px;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ef4444;
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    z-index: 50;
+  }
+  #voice-bar.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .voice-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: voicePulse 0.9s ease-in-out infinite;
+  }
+  @keyframes voicePulse {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.5); opacity: 0.5; }
+  }
+  .voice-wave {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .voice-bar-seg {
+    width: 3px;
+    background: #ef4444;
+    border-radius: 2px;
+    animation: waveBar 0.6s ease-in-out infinite alternate;
+  }
+  .voice-bar-seg:nth-child(1) { height: 8px;  animation-delay: 0s; }
+  .voice-bar-seg:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+  .voice-bar-seg:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+  .voice-bar-seg:nth-child(4) { height: 18px; animation-delay: 0.15s; }
+  .voice-bar-seg:nth-child(5) { height: 10px; animation-delay: 0.05s; }
+  @keyframes waveBar {
+    from { transform: scaleY(0.4); }
+    to   { transform: scaleY(1.0); }
+  }
+
+  /* Export panel */
+  #export-panel {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(100%);
+    width: 900px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    padding: 28px 32px 32px;
+    z-index: 200;
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 -8px 48px rgba(0,0,0,0.5);
+  }
+  #export-panel.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+  .export-panel-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .export-panel-title span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .export-preview {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.75;
+    color: #b0bcdd;
+    max-height: 220px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .export-preview .ep-label {
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .export-preview .ep-constraint {
+    color: var(--amber);
+  }
+  .export-preview .ep-note {
+    color: #a78bfa;
+  }
+  .export-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .export-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: box-shadow 0.2s;
+  }
+  .export-btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  #copy-btn {
+    background: var(--teal);
+    color: #050810;
+  }
+  #copy-btn.pulse {
+    animation: copyPulse 0.85s ease-in-out 2;
+  }
+  @keyframes copyPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,200,224,0); }
+    50%      { box-shadow: 0 0 0 12px rgba(0,200,224,0.22); }
+  }
+
+  /* ============================
+     SCENE 2 — AI Chat Response
+     ============================ */
+  #scene2 {
+    background: #09090f;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #scene2.active { display: flex; }
+
+  .ai-window {
+    width: 1080px;
+    background: #111118;
+    border: 1px solid #1e1e30;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .ai-header {
+    height: 52px;
+    background: #18181f;
+    border-bottom: 1px solid #1e1e30;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 14px;
+  }
+  .ai-header-dots { display: flex; gap: 7px; }
+  .ai-header-dots span { width: 13px; height: 13px; border-radius: 50%; }
+  .ai-dot-red    { background: #ff5f57; }
+  .ai-dot-yellow { background: #febc2e; }
+  .ai-dot-green  { background: #28c840; }
+  .ai-window-title { font-size: 14px; color: #5a5a78; font-weight: 500; margin-left: 6px; }
+  .ai-model-badge {
+    margin-left: auto;
+    padding: 3px 12px;
+    background: rgba(0,200,224,0.1);
+    border: 1px solid rgba(0,200,224,0.28);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .ai-messages {
+    padding: 28px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-height: 400px;
+  }
+  .ai-msg-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .ai-msg-row.visible { opacity: 1; }
+  .ai-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .av-user { background: #1e1e2e; border: 1px solid #2a2a42; color: #5a5a88; }
+  .av-ai   { background: linear-gradient(135deg, #00c8e0, #7c3aed); color: #fff; font-size: 12px; }
+  .ai-bubble {
+    max-width: 880px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .bubble-user-ai {
+    background: #1e1e2e;
+    border: 1px solid #2a2a42;
+    color: #c8ccdc;
+    font-family: var(--mono);
+    font-size: 13px;
+    white-space: pre-wrap;
+  }
+  .bubble-ai-response {
+    background: rgba(0,200,224,0.05);
+    border: 1px solid rgba(0,200,224,0.18);
+    color: #c8ccdc;
+  }
+  .ai-code-inline {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: rgba(0,200,224,0.1);
+    color: var(--teal);
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  /* ============================
+     SCENE 3 — CTA
+     ============================ */
+  #scene3 {
+    background: #000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+  }
+  #scene3.active { display: flex; }
+
+  .cta-logo {
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--teal);
+    letter-spacing: -2px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .cta-logo.visible { opacity: 1; transform: translateY(0); }
+  .cta-tagline {
+    font-size: 30px;
+    color: var(--text);
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.8s 0.25s, transform 0.8s 0.25s;
+  }
+  .cta-tagline.visible { opacity: 1; transform: translateY(0); }
+  .cta-sub {
+    font-size: 18px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.8s 0.45s;
+  }
+  .cta-sub.visible { opacity: 1; }
+  .cta-url {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--teal);
+    text-decoration: underline;
+    text-underline-offset: 5px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.8s 0.65s, transform 0.8s 0.65s;
+  }
+  .cta-url.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- PLAY SCREEN -->
+<div id="play-screen">
+  <div class="brand">PromptBoard</div>
+  <div class="sub">Demo · 68 seconds</div>
+  <button id="play-btn">&#9654;</button>
+  <div class="hint">Click to begin — have OBS recording before pressing Play</div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div id="progress-wrap"><div id="progress-bar"></div></div>
+
+<!-- FADE OVERLAY -->
+<div id="fade" class="black"></div>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor"><div class="ripple" id="ripple"></div></div>
+
+<!-- CAPTION -->
+<div id="caption"></div>
+
+<!-- TOAST -->
+<div id="toast">Prompt copied! &#10003;</div>
+
+<!-- ══════════════════════════════════════════════
+     SCENE 0 — Title Cards
+     ══════════════════════════════════════════════ -->
+<div class="scene" id="scene0">
+  <div class="title-card-main" id="tc-main">You're about to prompt an AI with a real problem.</div>
+  <div class="title-card-sub" id="tc-sub">A bug report. An image. A flow diagram. Specific constraints.</div>
+  <div class="title-card-line2" id="tc-line2">One text box isn't going to cut it.</div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCENE 1 — PromptBoard UI
+     ══════════════════════════════════════════════ -->
+<div class="scene" id="scene1">
+
+  <!-- TOPBAR -->
+  <div class="pb-topbar">
+    <div class="pb-logo">&#9632; PromptBoard</div>
+    <div class="pb-board-name">Untitled Board</div>
+    <div class="pb-divider"></div>
+    <button class="pb-topbtn">&#8634; Undo</button>
+    <button class="pb-topbtn">&#8635; Redo</button>
+    <button class="pb-topbtn">&#9249; Clear</button>
+    <button class="pb-topbtn">&#128190; Save</button>
+    <div class="pb-spacer"></div>
+    <button class="pb-topbtn primary" id="copy-prompt-btn">&#128203; Copy Prompt</button>
+    <button class="pb-topbtn">&#8599; Export</button>
+  </div>
+
+  <div class="pb-layout">
+
+    <!-- SIDEBAR -->
+    <div class="pb-sidebar">
+      <div class="pb-sidebar-item active" title="Text block">&#128221;</div>
+      <div class="pb-sidebar-item" title="Image block">&#128247;</div>
+      <div class="pb-sidebar-item" title="Flow block">&#9671;</div>
+      <div class="pb-sidebar-item" title="Arrow">&#8599;</div>
+      <div class="pb-sidebar-sep"></div>
+      <div class="pb-sidebar-item" title="Voice input">&#127908;</div>
+      <div class="pb-sidebar-item" title="Group">&#8903;</div>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="pb-canvas-wrap" id="canvas">
+
+      <!-- SVG ARROWS -->
+      <svg id="arrows-svg" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead-teal" markerWidth="10" markerHeight="7"
+                  refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="rgba(0,200,224,0.7)"/>
+          </marker>
+          <marker id="arrowhead-purple" markerWidth="10" markerHeight="7"
+                  refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="rgba(167,139,250,0.7)"/>
+          </marker>
+        </defs>
+        <!-- Arrow: Goal → Image -->
+        <path id="arrow1" d="" stroke="rgba(0,200,224,0.55)" stroke-width="2"
+              fill="none" stroke-dasharray="6 4"
+              marker-end="url(#arrowhead-teal)"
+              stroke-dashoffset="1000"/>
+        <!-- Arrow: Constraints → Flow -->
+        <path id="arrow2" d="" stroke="rgba(167,139,250,0.55)" stroke-width="2"
+              fill="none" stroke-dasharray="6 4"
+              marker-end="url(#arrowhead-purple)"
+              stroke-dashoffset="1000"/>
+        <!-- Arrow: Goal → Flow -->
+        <path id="arrow3" d="" stroke="rgba(0,200,224,0.4)" stroke-width="1.5"
+              fill="none" stroke-dasharray="5 5"
+              marker-end="url(#arrowhead-teal)"
+              stroke-dashoffset="1000"/>
+      </svg>
+
+      <!-- BLOCK: GOAL -->
+      <div class="pb-block" id="block-goal" style="left:80px; top:80px; width:440px;">
+        <div class="pb-block-header header-teal">
+          <span>&#128221;</span>
+          <span class="pb-block-type">GOAL</span>
+          <div class="pb-block-del">&#10005;</div>
+        </div>
+        <div class="pb-block-body" id="goal-text" style="min-height:72px;"></div>
+        <div class="pb-resize"></div>
+      </div>
+
+      <!-- BLOCK: CONSTRAINTS -->
+      <div class="pb-block" id="block-constraints" style="left:80px; top:260px; width:440px;">
+        <div class="pb-block-header header-teal">
+          <span>&#128221;</span>
+          <span class="pb-block-type">CONSTRAINTS</span>
+          <div class="pb-block-del">&#10005;</div>
+        </div>
+        <div class="pb-block-body" id="constraints-text" style="min-height:56px;"></div>
+        <div class="pb-resize"></div>
+      </div>
+
+      <!-- BLOCK: IMAGE / SCREENSHOT -->
+      <div class="pb-block" id="block-image" style="left:600px; top:80px; width:480px;">
+        <div class="pb-block-header header-purple">
+          <span>&#128247;</span>
+          <span class="pb-block-type">SCREENSHOT</span>
+          <div class="pb-block-del">&#10005;</div>
+        </div>
+        <div class="pb-block-body" style="padding:12px;">
+          <div class="code-screenshot">
+<span class="code-cmt">// Cart.tsx — line 38</span>
+<span class="code-kw">export</span> <span class="code-kw">function</span> <span class="code-fn">Cart</span>() {
+  <span class="code-kw">const</span> { items, <span class="code-err">resetState</span> } = <span class="code-fn">useCart</span>();
+
+  <span class="code-kw">async function</span> <span class="code-fn">handleSubmit</span>() {
+    <span class="code-err">resetState</span>(); <span class="code-cmt">// ← called too early</span>
+    <span class="code-kw">await</span> <span class="code-fn">validatePayment</span>(items);
+    <span class="code-fn">submitOrder</span>();
+  }
+
+  <span class="code-kw">return</span> (
+    <span class="code-str">&lt;button</span> onClick={handleSubmit}&gt;
+      Checkout
+    <span class="code-str">&lt;/button&gt;</span>
+  );
+}</div>
+        </div>
+        <div class="pb-resize"></div>
+      </div>
+
+      <!-- BLOCK: FLOW -->
+      <div class="pb-block" id="block-flow" style="left:600px; top:420px; width:400px;">
+        <div class="pb-block-header header-amber">
+          <span>&#9671;</span>
+          <span class="pb-block-type">FLOW</span>
+          <div class="pb-block-del">&#10005;</div>
+        </div>
+        <div class="pb-block-body">
+          <div class="flow-block-inner">
+            <div class="flow-node process" id="fn-process">&#9654; Cart validates</div>
+            <div class="flow-node decision" id="fn-decision">&#9674; Payment fails?</div>
+            <div class="flow-node terminal" id="fn-terminal">&#9632; Show error</div>
+          </div>
+        </div>
+        <div class="pb-resize"></div>
+      </div>
+
+      <!-- VOICE INDICATOR -->
+      <div id="voice-bar">
+        <div class="voice-dot"></div>
+        <div class="voice-wave">
+          <div class="voice-bar-seg"></div>
+          <div class="voice-bar-seg"></div>
+          <div class="voice-bar-seg"></div>
+          <div class="voice-bar-seg"></div>
+          <div class="voice-bar-seg"></div>
+        </div>
+        <span>&#127908; Listening&hellip;</span>
+      </div>
+
+      <!-- EXPORT PANEL -->
+      <div id="export-panel">
+        <div class="export-panel-title">
+          Prompt Preview <span>3 blocks · 1 image · 3 flow nodes</span>
+        </div>
+        <div class="export-preview">
+<span class="ep-label">[GOAL]</span>
+Fix the checkout form — Cart component won't submit after the last refactor — also check the useCart hook
+
+<span class="ep-label">[CONSTRAINTS]</span>
+<span class="ep-constraint">No new deps · TypeScript strict · keep under 50 lines</span>
+
+<span class="ep-label">[SCREENSHOT]</span>
+Cart.tsx lines 38–52: resetState() is called before async validatePayment() resolves.
+
+<span class="ep-label">[FLOW]</span>
+<span class="ep-note">Cart validates → Payment fails? → Show error</span>
+        </div>
+        <div class="export-actions">
+          <button class="export-btn export-btn-secondary">&#9660; Close</button>
+          <button class="export-btn" id="copy-btn">&#128203; Copy prompt</button>
+        </div>
+      </div>
+
+    </div><!-- /canvas -->
+
+    <!-- RIGHT PROPS PANEL -->
+    <div class="pb-props">
+      <div>
+        <div class="props-section-title">Block</div>
+        <div class="props-field">
+          <div class="props-label">Type</div>
+          <div class="props-input" style="padding:6px 10px; font-size:13px; border-radius:6px; background:var(--surface2); border:1px solid var(--border); color:var(--teal);">GOAL</div>
+        </div>
+        <div class="props-field">
+          <div class="props-label">Label</div>
+          <div class="props-input">Fix checkout form</div>
+        </div>
+      </div>
+      <div>
+        <div class="props-section-title">Appearance</div>
+        <div class="props-field">
+          <div class="props-label">Color</div>
+          <div class="props-color-row">
+            <div class="props-color-swatch active" style="background:rgba(0,200,224,0.6);"></div>
+            <div class="props-color-swatch" style="background:rgba(124,58,237,0.6);"></div>
+            <div class="props-color-swatch" style="background:rgba(245,158,11,0.6);"></div>
+            <div class="props-color-swatch" style="background:rgba(34,197,94,0.6);"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="props-section-title">Position</div>
+        <div class="props-field" style="display:flex; gap:8px;">
+          <div style="flex:1;">
+            <div class="props-label">X</div>
+            <div class="props-input">80</div>
+          </div>
+          <div style="flex:1;">
+            <div class="props-label">Y</div>
+            <div class="props-input">80</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="props-section-title">Connections</div>
+        <div style="font-size:12px; color:var(--muted); line-height:1.6;">
+          &#8599; Image block<br>
+          &#8599; Flow block
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /layout -->
+</div><!-- /scene1 -->
+
+<!-- ══════════════════════════════════════════════
+     SCENE 2 — AI Response
+     ══════════════════════════════════════════════ -->
+<div class="scene" id="scene2">
+  <div class="ai-window">
+    <div class="ai-header">
+      <div class="ai-header-dots">
+        <span class="ai-dot-red"></span>
+        <span class="ai-dot-yellow"></span>
+        <span class="ai-dot-green"></span>
+      </div>
+      <div class="ai-window-title">Claude &mdash; New conversation</div>
+      <div class="ai-model-badge">claude-sonnet</div>
+    </div>
+    <div class="ai-messages">
+      <!-- Pasted prompt (user) -->
+      <div class="ai-msg-row" id="s2-msg1">
+        <div class="ai-avatar av-user">A</div>
+        <div class="ai-bubble bubble-user-ai" id="s2-msg1-text"></div>
+      </div>
+      <!-- AI response -->
+      <div class="ai-msg-row" id="s2-msg2">
+        <div class="ai-avatar av-ai">AI</div>
+        <div class="ai-bubble bubble-ai-response" id="s2-msg2-text"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SCENE 3 — CTA
+     ══════════════════════════════════════════════ -->
+<div class="scene" id="scene3">
+  <div class="cta-logo" id="cta-logo">PromptBoard</div>
+  <div class="cta-tagline" id="cta-tagline">Build AI prompts visually.</div>
+  <div class="cta-sub" id="cta-sub">Part of Machina &middot; Free &middot; Open source &middot; No installation</div>
+  <div class="cta-url" id="cta-url">machina.chat</div>
+</div>
+
+<script>
+'use strict';
+
+/* ─────────────────────────────────────────────
+   Helpers
+   ───────────────────────────────────────────── */
+const $  = id => document.getElementById(id);
+const qs = sel => document.querySelector(sel);
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function moveCursor(x, y, speed) {
+  const c = $('cursor');
+  c.className = speed === 'fast' ? 'fast' : speed === 'slow' ? 'slow' : speed === 'instant' ? 'instant' : '';
+  c.style.left = x + 'px';
+  c.style.top  = y + 'px';
+}
+
+function clickCursor() {
+  const ripple = $('ripple');
+  ripple.classList.remove('active');
+  void ripple.offsetWidth;
+  ripple.classList.add('active');
+}
+
+function showCaption(text) {
+  const el = $('caption');
+  el.textContent = text;
+  el.classList.add('visible');
+}
+
+function hideCaption() {
+  $('caption').classList.remove('visible');
+}
+
+function setProgress(pct) {
+  $('progress-bar').style.width = pct + '%';
+}
+
+let currentScene = null;
+
+async function fadeToScene(sceneId) {
+  const fade = $('fade');
+  fade.classList.add('black');
+  await delay(450);
+  if (currentScene) currentScene.classList.remove('active');
+  const next = $(sceneId);
+  next.classList.add('active');
+  currentScene = next;
+  fade.classList.remove('black');
+  await delay(450);
+}
+
+async function fadeOut() {
+  const fade = $('fade');
+  fade.classList.add('black');
+  await delay(500);
+}
+
+async function typeInto(el, text, msPerChar) {
+  msPerChar = msPerChar || 38;
+  el.textContent = '';
+  for (const ch of text) {
+    el.textContent += ch;
+    await delay(msPerChar);
+  }
+}
+
+async function streamText(el, text, msPerChar) {
+  msPerChar = msPerChar || 20;
+  for (const ch of text) {
+    el.textContent += ch;
+    await delay(msPerChar);
+  }
+}
+
+/* Animate SVG path stroke-dashoffset to 0 */
+function animatePath(pathEl, duration) {
+  const len = pathEl.getTotalLength ? pathEl.getTotalLength() : 300;
+  pathEl.style.strokeDasharray = len + ' ' + len;
+  pathEl.style.strokeDashoffset = len;
+  pathEl.style.transition = 'none';
+  void pathEl.getBoundingClientRect();
+  pathEl.style.transition = `stroke-dashoffset ${duration}ms ease-in-out`;
+  pathEl.style.strokeDashoffset = '0';
+}
+
+/* URL check */
+const params = new URLSearchParams(location.search);
+if (!params.has('clean')) {
+  document.body.classList.add('show-progress');
+}
+
+/* ─────────────────────────────────────────────
+   MAIN SEQUENCE
+   ───────────────────────────────────────────── */
+$('play-btn').addEventListener('click', async () => {
+  const playScreen = $('play-screen');
+  playScreen.style.transition = 'opacity 0.6s';
+  playScreen.style.opacity = '0';
+  await delay(650);
+  playScreen.style.display = 'none';
+
+  $('cursor').style.display = 'block';
+  moveCursor(960, 540, 'instant');
+
+  document.body.classList.add('show-progress');
+  const totalMs = 68000;
+  const progStart = Date.now();
+  const progInterval = setInterval(() => {
+    const elapsed = Date.now() - progStart;
+    setProgress(Math.min(100, (elapsed / totalMs) * 100));
+  }, 200);
+
+  /* ══════════════════════════════════════════
+     0–5s: SCENE 0 — Title Cards
+     ══════════════════════════════════════════ */
+  await fadeToScene('scene0');
+  moveCursor(960, 540, 'instant');
+
+  // 0s: Main title fades in
+  await delay(300);
+  $('tc-main').classList.add('visible');
+
+  // ~1.2s: subtitle fades in
+  await delay(1200);
+  $('tc-sub').classList.add('visible');
+
+  // ~3s: hold, then show second line
+  await delay(1800);
+  $('tc-main').style.transition = 'opacity 0.5s';
+  $('tc-sub').style.transition = 'opacity 0.5s';
+  $('tc-main').style.opacity = '0';
+  $('tc-sub').style.opacity = '0';
+  await delay(500);
+
+  $('tc-line2').classList.add('visible');
+  await delay(1200);
+
+  /* ══════════════════════════════════════════
+     5–7s: SCENE 1 — PromptBoard slides in
+     ══════════════════════════════════════════ */
+  await fadeToScene('scene1');
+  moveCursor(500, 500, 'instant');
+
+  showCaption('PromptBoard — a visual canvas for AI prompts.');
+  await delay(2000);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     7–11s: GOAL block appears + types
+     ══════════════════════════════════════════ */
+  await delay(300);
+  $('block-goal').classList.add('visible');
+  moveCursor(300, 140, 'fast');
+  await delay(450);
+
+  showCaption('Drop a GOAL block. Describe what needs fixing.');
+  const goalEl = $('goal-text');
+  await typeInto(goalEl, 'Fix the checkout form — Cart component won\'t submit after the last refactor', 36);
+
+  await delay(600);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     11–15s: CONSTRAINTS block appears + types
+     ══════════════════════════════════════════ */
+  await delay(200);
+  $('block-constraints').classList.add('visible');
+  moveCursor(300, 310, 'fast');
+  await delay(400);
+
+  showCaption('Add constraints. The AI gets boundaries upfront.');
+  const constraintsEl = $('constraints-text');
+  await typeInto(constraintsEl, 'No new deps · TypeScript strict · keep under 50 lines', 42);
+
+  await delay(600);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     15–19s: IMAGE block (code screenshot)
+     ══════════════════════════════════════════ */
+  await delay(300);
+  $('block-image').classList.add('visible');
+  moveCursor(840, 200, 'fast');
+  await delay(450);
+
+  showCaption('Drop a screenshot. The AI sees exactly what you see.');
+  await delay(3500);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     19–25s: FLOW nodes appear one by one
+     ══════════════════════════════════════════ */
+  await delay(300);
+  $('block-flow').classList.add('visible');
+  moveCursor(800, 540, 'fast');
+  await delay(400);
+
+  showCaption('Add a flow diagram — map out the logic visually.');
+
+  await delay(400);
+  $('fn-process').classList.add('visible');
+  await delay(700);
+  $('fn-decision').classList.add('visible');
+  await delay(700);
+  $('fn-terminal').classList.add('visible');
+
+  await delay(2000);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     25–30s: Animated arrows drawn
+     ══════════════════════════════════════════ */
+  await delay(300);
+  showCaption('Connect blocks. The AI sees how everything relates.');
+
+  // Set arrow paths based on approximate block positions
+  // Arrow1: Goal (right edge ~520,126) → Image (left edge ~600,230)
+  $('arrow1').setAttribute('d', 'M 520 126 C 560 126, 560 220, 600 220');
+  // Arrow2: Constraints (right edge ~520,300) → Flow (left edge ~600,500)
+  $('arrow2').setAttribute('d', 'M 520 300 C 565 300, 565 490, 600 490');
+  // Arrow3: Goal (bottom ~300,205) → Flow (top ~800,420)
+  $('arrow3').setAttribute('d', 'M 300 205 C 300 320, 800 320, 800 420');
+
+  await delay(200);
+  animatePath($('arrow1'), 800);
+  await delay(350);
+  animatePath($('arrow2'), 800);
+  await delay(350);
+  animatePath($('arrow3'), 700);
+
+  await delay(2800);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     30–36s: Voice indicator — add note to goal
+     ══════════════════════════════════════════ */
+  await delay(200);
+  $('voice-bar').classList.add('visible');
+  moveCursor(960, 900, 'slow');
+  await delay(400);
+
+  showCaption('Voice note — add context without breaking your flow.');
+
+  // Append to goal block text as if spoken
+  await delay(1400);
+  const goalAppend = ' — also check the useCart hook';
+  for (const ch of goalAppend) {
+    goalEl.textContent += ch;
+    await delay(55);
+  }
+
+  await delay(1500);
+  $('voice-bar').classList.remove('visible');
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     36–42s: Export panel slides up
+     ══════════════════════════════════════════ */
+  await delay(400);
+  showCaption('Export — your structured prompt is ready.');
+
+  moveCursor(1800, 28, 'fast');
+  await delay(600);
+  clickCursor();
+
+  $('export-panel').classList.add('visible');
+  await delay(1400);
+
+  // Copy button pulses
+  $('copy-btn').classList.add('pulse');
+  moveCursor(1700, 660, 'slow');
+  await delay(1800);
+
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     42–46s: Copy clicked, toast appears
+     ══════════════════════════════════════════ */
+  await delay(200);
+  moveCursor(1688, 658, 'fast');
+  await delay(500);
+  clickCursor();
+  $('copy-btn').classList.remove('pulse');
+
+  $('toast').classList.add('visible');
+  $('export-panel').classList.remove('visible');
+
+  await delay(2000);
+  $('toast').classList.remove('visible');
+  await delay(400);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     46–54s: SCENE 2 — AI response
+     ══════════════════════════════════════════ */
+  setProgress(67);
+  await fadeToScene('scene2');
+  moveCursor(960, 540, 'instant');
+
+  showCaption('Paste into any AI. It already understands everything.');
+
+  // Show user prompt (the pasted structured prompt)
+  $('s2-msg1').classList.add('visible');
+  const promptText = '[GOAL] Fix the checkout form — Cart component won\'t submit after the last refactor — also check the useCart hook\n[CONSTRAINTS] No new deps · TypeScript strict · keep under 50 lines\n[SCREENSHOT] Cart.tsx line 47: resetState() called before async validatePayment() resolves.\n[FLOW] Cart validates → Payment fails? → Show error';
+  await typeInto($('s2-msg1-text'), promptText, 10);
+
+  await delay(700);
+  hideCaption();
+
+  // AI response streams in
+  $('s2-msg2').classList.add('visible');
+  const aiResp = $('s2-msg2-text');
+  const aiText = 'I can see the issue — ';
+  await streamText(aiResp, aiText, 22);
+
+  // Inline code highlight via DOM manipulation
+  const codeSpan = document.createElement('span');
+  codeSpan.className = 'ai-code-inline';
+  codeSpan.textContent = 'useCart';
+  aiResp.appendChild(codeSpan);
+
+  const afterCode = ' line 47 calls ';
+  for (const ch of afterCode) { aiResp.appendChild(document.createTextNode(ch)); await delay(22); }
+
+  const codeSpan2 = document.createElement('span');
+  codeSpan2.className = 'ai-code-inline';
+  codeSpan2.textContent = 'resetState()';
+  aiResp.appendChild(codeSpan2);
+
+  const rest = ' before the async validation resolves. The fix is to move it after the await — here\'s the corrected handleSubmit function that respects your TypeScript strict constraint and stays under 50 lines.';
+  for (const ch of rest) { aiResp.appendChild(document.createTextNode(ch)); await delay(18); }
+
+  await delay(1000);
+  showCaption('One structured prompt. Instant, precise AI response.');
+  await delay(2200);
+  hideCaption();
+
+  /* ══════════════════════════════════════════
+     54–62s: SCENE 3 — CTA
+     ══════════════════════════════════════════ */
+  setProgress(79);
+  await fadeToScene('scene3');
+
+  await delay(400);
+  $('cta-logo').classList.add('visible');
+  await delay(600);
+  $('cta-tagline').classList.add('visible');
+  await delay(500);
+  $('cta-sub').classList.add('visible');
+  await delay(400);
+  $('cta-url').classList.add('visible');
+
+  showCaption('Stop re-explaining. Start prompting with structure.');
+
+  await delay(6000);
+  hideCaption();
+  setProgress(100);
+  await fadeOut();
+
+  clearInterval(progInterval);
+});
+</script>
+</body>
+</html>
