@@ -1,63 +1,59 @@
-# Machina — Workspace AI
+# Machina — Claude Code workspace
 
-> Machina è la versione pubblica e open source della suite di tool sviluppata in `~/Documenti/Progetti/Tools`. Questo workspace è separato: niente path personali, niente configurazioni private, tutto in inglese.
+An open-source suite of AI developer tools that closes the gap between "I see the bug" and "the AI fixes it."  
+Target: developers using AI agents (Copilot, Claude) for debugging.
 
-## Progetto
-
-Suite di tool open source che chiude il gap tra "vedo il bug" e "l'AI lo risolve".  
-Target: developer che usano AI agents (Copilot, Claude) per debugging.
-
-- **Sito**: machina.chat  
+- **Site**: machina.chat  
 - **Repo**: github.com/machina-tools/machina (org: machina-tools)  
-- **Email**: contact@machina.chat (Hostinger, da attivare)
+- **Email**: contact@machina.chat
 
-## Stack tecnico
+## Tech stack
 
 | Layer | Tech |
 |-------|------|
-| Landing | `index.html` statico — dark theme, teal accent (#14b8a6 / #38bdf8), Inter |
+| Landing | `index.html` static — dark theme, teal accent (#14b8a6 / #38bdf8), Inter |
 | Blog | Astro 4 in `blog/` → `machina.chat/blog/` |
 | Deploy | GitHub Actions `.github/workflows/deploy.yml` → GitHub Pages artifact |
-| Newsletter | Brevo — form embed (no API key nel frontend) |
-| Dominio | Hostinger → 4 A record GitHub Pages + CNAME www |
+| Newsletter | Brevo — form embed (no API key in frontend) |
+| Domain | Hostinger → 4 A records GitHub Pages + CNAME www |
 
-## I 3 tool pubblici
+## Public tools
 
-| Tool | Port | Descrizione |
+| Tool | Port | Description |
 |------|------|-------------|
-| BugCapture | 4327 | Record schermo+audio → .md con screenshot+Whisper per AI |
-| ContextForge | 4328 | Git diff + SSH log + BugCapture → briefing AI pre-sessione |
-| LearnBoard | 4331 | UI per LEARNING.md — memoria AI persistente con statistiche |
+| BugCapture | 4327 | Screen+audio recording → .md with screenshot+Whisper for AI |
+| ContextForge | 4328 | Git diff + SSH log + BugCapture → AI pre-session briefing |
+| LearnBoard | 4331 | UI for LEARNING.md — persistent AI memory with statistics |
+| PromptBoard | — | Single-file drag-and-drop canvas for building structured AI prompts |
 
-Ogni tool: `server.js` / `server.mjs`, `index.html`, `package.json`, `.env.example`.  
-Config condivisa: `~/.config/machina/servers.json`  
-Setup: `bash setup.sh` dalla root del repo.
+Each tool: `server.js` / `server.mjs`, `index.html`, `package.json`, `.env.example`.  
+Shared config: `~/.config/machina/servers.json`  
+Setup: `bash setup.sh` from the repo root.
 
-## Stato lancio
+## Launch status
 
-- [x] Landing live su machina.chat
-- [x] Blog live su machina.chat/blog/
-- [x] Primo articolo: "How I Built BugCapture"
-- [x] Newsletter Brevo integrata
-- [x] 3 tool pubblici con HTML frontend in inglese
-- [x] Testi lancio PH + HN + Twitter + LinkedIn (`LAUNCH.md`)
-- [x] Demo video — `video/demo-video-final.mp4` (75s, Laravel/React bug, voce AI Liam)
-- [x] Email contact@machina.chat — attiva su Hostinger Mail
-- [ ] Lancio su Product Hunt + Hacker News (dopo il video)
+- [x] Landing live at machina.chat
+- [x] Blog live at machina.chat/blog/
+- [x] First article: "How I Built BugCapture"
+- [x] Brevo newsletter integrated
+- [x] 3 server-based tools with English HTML frontends
+- [x] Demo videos — BugCapture, LearnBoard, PromptBoard (YouTube)
+- [x] Email contact@machina.chat — active on Hostinger Mail
+- [x] Blog post: "How I Built PromptBoard"
+- [ ] Launch on Product Hunt + Hacker News
 
-## Convenzioni
+## Conventions
 
-- **Lingua**: tutto in inglese — codice, UI, articoli, commit message
+- **Language**: everything in English — code, UI, articles, commit messages
 - **Design**: dark `#0f1117`, surface `#1a1d27`, teal `#14b8a6`, accent `#38bdf8`
-- **Nessun path hardcoded** — env var con default ragionevoli
-- **Nessuna credenziale** nel codice pubblico
-- **Articoli blog**: `.md` in `blog/src/pages/posts/`, frontmatter con `layout`, `title`, `date`, `description`, `tag`
+- **No hardcoded paths** — env vars with sensible defaults
+- **No credentials** in public code
+- **Blog posts**: `.md` in `blog/src/pages/posts/`, frontmatter with `layout`, `title`, `date`, `description`, `tag`
 
-## Come comportarsi in questo workspace
+## Working in this repo
 
-1. **Prodotto pubblico** — ogni modifica è visibile a utenti esterni; pensare a installabilità e UX da zero
-2. **Nessun riferimento privato** — non citare tool, path o config da `~/Documenti/Progetti/Tools/`
-3. **Aggiorna stato lancio** — dopo ogni sessione significativa aggiorna la checklist sopra
-4. **Blog-first** — ogni feature nuova o storia interessante merita un articolo
-5. **Mantieni la separazione** — le versioni in `Machina/tools/` sono indipendenti dagli originali in `Tools/`
-6. **Testa sempre prima di dichiarare done** — dopo ogni modifica verificare l'effetto reale: `curl` sul sito live per HTML, diff del file per codice locale, log Actions per deploy. Non dichiarare mai completato qualcosa senza aver visto la conferma concreta. Se il deploy è in corso aspettare e verificare l'output finale.
+1. **Public product** — every change is visible to external users; think installability and first-run UX
+2. **Test before declaring done** — after every change, verify with `curl` on the live site for HTML, file diff for local code, Actions log for deploys. Never declare something complete without seeing concrete confirmation. Wait for deploys to finish before verifying.
+3. **Update launch status** — after significant sessions, update the checklist above
+4. **Blog-first** — every new feature or interesting story deserves a post
+5. **Tools are self-contained** — each tool in `tools/` works independently

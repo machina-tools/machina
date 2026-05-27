@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+blog/package-lock.json
+video/package-lock.json
+
+# Build output
+dist/
+.astro/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Video production assets (large binaries — store externally)
+video/*.mp4
+video/*.webm
+video/*.mov
+
+# Internal production tooling (not part of the installable product)
+video/promptboard-autoplay.html
+video/record-promptboard.js
+video/record-learnboard.js
+video/record.js
+video/promptboard-script.md
+video/learnboard-script.md
+video/script-elevenlabs.md
+video/YOUTUBE_PUBLISHING_PROCESS.md
+video/SHOOTING-GUIDE.md
+video/code/
+video/demo-*.html
+video/mock-*.html
+
+# Internal docs
+LAUNCH.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
