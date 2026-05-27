@@ -71,7 +71,7 @@ Checklist:
 |------|-----------|-------|
 | BugCapture | `Qb9yuSKKojU` | BugCapture demo |
 | LearnBoard | `IZajNU90-Fg` | LearnBoard demo |
-| PromptBoard | `— pending —` | PromptBoard demo (record with `record-promptboard.js`) |
+| PromptBoard | `GcjuYV4cH04` | PromptBoard — Build AI Prompts Visually | Machina |
 
 ---
 

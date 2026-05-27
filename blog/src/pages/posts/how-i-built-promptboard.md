@@ -6,6 +6,7 @@ description: "Typing a complex AI prompt into a single text box is a bottleneck.
 tag: "devtools"
 readingTime: 8
 github: "https://github.com/machina-tools/machina/tree/main/tools/promptboard"
+youtube: "GcjuYV4cH04"
 ---
 
 There's a class of AI prompts that don't fit in a text box.
