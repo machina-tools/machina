@@ -271,8 +271,7 @@
     <img src="/assets/logo-horizontal.png" alt="Machina Tools">
   </a>
   <div class="nav-links">
-    <a href="#learnboard">LearnBoard</a>
-    <a href="#tools">Tools</a>
+    <a href="#learnboard">Tools</a>
     <a href="#consulting">Consulting</a>
     <a href="/blog/">Blog</a>
     <a href="https://github.com/machina-tools/machina" target="_blank">GitHub ↗</a>
@@ -290,7 +289,7 @@
   </p>
   <div class="hero-actions">
     <a href="https://github.com/machina-tools/machina" target="_blank" class="btn-lg btn-teal">★ View on GitHub</a>
-    <a href="#tools" class="btn-lg btn-outline">See all tools →</a>
+    <a href="#learnboard" class="btn-lg btn-outline">See all tools →</a>
   </div>
   <p class="hero-note">MIT licensed · runs locally · no cloud required</p>
 </section>
@@ -371,6 +370,56 @@
 </div>
 
 <!-- ── FEATURED: LEARNBOARD ── -->
+<!-- ── FEATURED: PROMPTBOARD ── -->
+<div class="section">
+  <div class="feature-wide">
+    <div>
+      <div class="fw-label">🎯 Visual prompt builder</div>
+      <div class="fw-title">PromptBoard — Build AI<br>prompts visually</div>
+      <p class="fw-desc">
+        Complex tasks don't fit in a text box. PromptBoard gives you a drag-and-drop canvas:
+        add text blocks, drop screenshots, draw flow diagrams, connect them with labeled arrows.
+        Export everything as a structured <code style="color:var(--teal)">.md</code> file any AI can parse immediately.
+        No server, no install — just open the file.
+      </p>
+      <div class="fw-steps">
+        <div class="fw-step">
+          <div class="fw-num">1</div>
+          <div class="fw-step-text"><strong>Build on canvas</strong> — drag text, image, and flow blocks. Speak notes directly into any block via voice dictation.</div>
+        </div>
+        <div class="fw-step">
+          <div class="fw-num">2</div>
+          <div class="fw-step-text"><strong>Connect with arrows</strong> — label every relationship. The AI reads structure, not a wall of text.</div>
+        </div>
+        <div class="fw-step">
+          <div class="fw-num">3</div>
+          <div class="fw-step-text"><strong>Export as .md</strong> — one structured brief with embedded screenshots. Paste into Claude, ChatGPT, or Copilot.</div>
+        </div>
+      </div>
+      <a href="tools/promptboard/index.html" class="btn-lg btn-outline" style="display:inline-block;margin-top:8px;">Try PromptBoard →</a>
+    </div>
+    <div class="fw-visual">
+      <div class="fwv-bar">
+        <div class="fwv-dot" style="background:#f87171"></div>
+        <div class="fwv-dot" style="background:#fbbf24;margin-left:4px"></div>
+        <div class="fwv-dot" style="background:#34d399;margin-left:4px"></div>
+        <span class="fwv-title">promptboard_brief.md</span>
+      </div>
+      <div class="fwv-body">
+        <div class="fwv-line"><span class="fwv-key"># Fix the checkout form</span></div>
+        <div class="fwv-line" style="margin-top:8px"><span class="fwv-key">**[GOAL]**</span> <span class="fwv-val">Cart component won't submit after refactor</span></div>
+        <div class="fwv-line" style="margin-top:6px"><span class="fwv-key">**[CONSTRAINTS]**</span> <span class="fwv-val">No new deps · TypeScript strict · &lt;50 lines</span></div>
+        <div class="fwv-line" style="margin-top:6px"><span class="fwv-key">**[SCREENSHOT]**</span></div>
+        <div class="fwv-line"><span class="fwv-val">![cart-error](data:image/png;base64,iVBOR...)</span></div>
+        <div class="fwv-line" style="margin-top:8px"><span class="fwv-key">## Flow</span></div>
+        <div class="fwv-line"><span class="fwv-val">Cart validates → Payment API? <span class="fwv-badge" style="margin-left:4px">POST /checkout</span></span></div>
+        <div class="fwv-line"><span class="fwv-val">Payment API? → Show error state</span></div>
+        <div class="fwv-line" style="margin-top:10px;color:var(--teal)">→ Claude found root cause in 23s</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="section" id="learnboard">
   <div class="feature-wide" style="background:linear-gradient(135deg,var(--surface) 0%,rgba(124,58,237,.08) 100%);">
     <div class="fw-visual">
@@ -492,77 +541,6 @@
     </div>
   </div>
 
-  <!-- ── TOOLS GRID ── -->
-  <div id="tools">
-    <div class="section-label" style="margin-bottom:10px;">All tools</div>
-    <h2 style="margin-bottom:36px;">Everything in the suite</h2>
-  </div>
-  <div class="tools-grid">
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">🐛</div>
-        <div><div class="tool-name">BugCapture</div><div class="tool-tagline">Record → AI-ready bug report</div></div>
-      </div>
-      <div class="tool-desc">Screen + audio recording with offline Whisper transcription. Exports .md with embedded screenshots for any AI agent.</div>
-      <div class="tool-badges"><span class="badge badge-teal">Offline</span><span class="badge badge-purple">Whisper</span><span class="badge badge-green">Copilot ready</span></div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">🧬</div>
-        <div><div class="tool-name">ContextForge</div><div class="tool-tagline">AI briefing before every debug</div></div>
-      </div>
-      <div class="tool-desc">Auto-collects git diff, SSH logs, and last BugCapture into a single AI briefing prompt. The AI knows everything before you say a word.</div>
-      <div class="tool-badges"><span class="badge badge-teal">Auto-detect</span><span class="badge badge-green">SSH logs</span></div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">🗄️</div>
-        <div><div class="tool-name">DBInspect</div><div class="tool-tagline">Schema → Mermaid ER for AI</div></div>
-      </div>
-      <div class="tool-desc">Connects to MySQL/MariaDB or parses SQL dumps. Generates structured .md with full schema, FK relationships, and Mermaid ER diagram.</div>
-      <div class="tool-badges"><span class="badge badge-teal">MySQL</span><span class="badge badge-purple">Mermaid ER</span></div>
-    </div>
-    <a href="tools/promptboard/index.html" class="tool-card" style="text-decoration:none;color:inherit;">
-      <div class="tool-card-header">
-        <div class="tool-icon">🎯</div>
-        <div><div class="tool-name">PromptBoard</div><div class="tool-tagline">Visual AI prompt builder</div></div>
-      </div>
-      <div class="tool-desc">Canvas-based prompt builder. Drag text blocks, images, flow diagrams. Voice dictation. Export as .md with base64 images for multimodal AI.</div>
-      <div class="tool-badges"><span class="badge badge-yellow">Canvas</span><span class="badge badge-purple">Voice</span><span class="badge badge-teal">No server →</span></div>
-    </a>
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">✂️</div>
-        <div><div class="tool-name">ClipAI</div><div class="tool-tagline">Clipboard with AI memory</div></div>
-      </div>
-      <div class="tool-desc">Clipboard history (last 50 items) + local AI via Ollama. Translate, summarize, rewrite, extract key points from anything you copy.</div>
-      <div class="tool-badges"><span class="badge badge-teal">Offline AI</span><span class="badge badge-green">Ollama</span></div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">📡</div>
-        <div><div class="tool-name">SiteIntel</div><div class="tool-tagline">SEO + competitive intelligence</div></div>
-      </div>
-      <div class="tool-desc">Full SEO analysis, Core Web Vitals, marketing stack, SSL, DNS, competitor positioning. Exports a ready-made AI prompt with all findings.</div>
-      <div class="tool-badges"><span class="badge badge-yellow">SEO</span><span class="badge badge-purple">Competitive</span></div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">🧠</div>
-        <div><div class="tool-name">LearnBoard</div><div class="tool-tagline">Your AI's memory, visualized</div></div>
-      </div>
-      <div class="tool-desc">Web UI for the AI learning layer. View and edit lessons learned, workflow patterns, and success/failure stats from every session.</div>
-      <div class="tool-badges"><span class="badge badge-teal">Meta-AI</span><span class="badge badge-green">Editable</span></div>
-    </div>
-    <div class="tool-card">
-      <div class="tool-card-header">
-        <div class="tool-icon">🤖</div>
-        <div><div class="tool-name">AgentForge</div><div class="tool-tagline">Build self-improving agents</div></div>
-      </div>
-      <div class="tool-desc">Create per-project AI agents that learn from your codebase. Capture learning events automatically via Claude Code hooks. Cross-project pattern distillation.</div>
-      <div class="tool-badges"><span class="badge badge-purple">Meta-AI</span><span class="badge badge-teal">Auto-learn</span></div>
-    </div>
-  </div>
 </div>
 
 <!-- ── CONSULTING ── -->
@@ -629,7 +607,7 @@
 <footer>
   <a href="/" style="display:flex;align-items:center;"><img src="/assets/logo-horizontal.png" alt="Machina Tools" style="height:26px;width:auto;"></a>
   <div class="footer-links">
-    <a href="#tools">Tools</a>
+    <a href="#learnboard">Tools</a>
     <a href="/blog/">Blog</a>
     <a href="https://github.com/machina-tools/machina" target="_blank">GitHub</a>
     <a href="mailto:contact@machina.chat">Contact</a>
