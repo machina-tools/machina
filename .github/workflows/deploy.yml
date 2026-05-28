@@ -37,6 +37,8 @@ jobs:
           cp CNAME _site/
           cp -r assets/ _site/assets/
           cp -r blog/dist/. _site/blog/
+          mkdir -p _site/tools/promptboard
+          cp tools/promptboard/index.html _site/tools/promptboard/
 
       - uses: actions/upload-pages-artifact@v3
         with:
