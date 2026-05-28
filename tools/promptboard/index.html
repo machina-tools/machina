@@ -783,13 +783,14 @@ function onPaste(e) {
 }
 
 // ─── VOICE ────────────────────────────────────────────────────────────────────
-function initRecognition(onResult, onEnd) {
+function initRecognition(onResult, onEnd, onError) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) return null;
   const r = new SR();
   r.lang = 'en-US'; r.continuous = true; r.interimResults = false;
   r.onresult = e => { let t=''; for(let i=e.resultIndex;i<e.results.length;i++) t+=e.results[i][0].transcript+' '; onResult(t.trim()); };
-  r.onend = onEnd; r.onerror = () => stopVoice();
+  r.onend = onEnd;
+  r.onerror = () => { stopVoice(); if (onError) onError(); };
   return r;
 }
 
@@ -888,7 +889,11 @@ function applyRecText() {
 function makeVoiceHandler(onResult) {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SR) {
-    S.recognition = initRecognition(onResult, () => { if (S.voiceActive) stopVoice(); });
+    S.recognition = initRecognition(
+      onResult,
+      () => { if (S.voiceActive) stopVoice(); },
+      () => startMediaVoice(onResult)  // fallback when Web Speech API is blocked (e.g. Brave)
+    );
     if (S.recognition) {
       S.recognition.start(); S.voiceActive = true;
       const vi = document.getElementById('voice-indicator');
