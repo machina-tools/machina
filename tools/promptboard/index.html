@@ -169,6 +169,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .modal-btn:hover{border-color:var(--teal);color:var(--teal);}
 .toast{position:fixed;bottom:60px;right:20px;background:var(--surface);border:1px solid var(--teal);color:var(--teal);padding:9px 18px;border-radius:8px;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .3s;z-index:600;pointer-events:none;}
 .toast.show{opacity:1;}
+/* voice compat pill in topbar */
+.voice-pill{font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:10px;border:1px solid;white-space:nowrap;letter-spacing:.03em;}
+.voice-pill.live    {color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08);}
+.voice-pill.remote  {color:#fb923c;border-color:rgba(251,146,60,.3); background:rgba(251,146,60,.08);}
+.voice-pill.limited {color:#f87171;border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.08);}
 </style>
 </head>
 <body>
@@ -196,6 +201,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   <div class="sep"></div>
   <button class="tbtn accent" onclick="copyPrompt()">📋 Copy prompt</button>
   <button class="tbtn accent" onclick="exportMd()">⬇ Export .md</button>
+  <span id="voice-pill" class="voice-pill" title="Voice transcription mode — depends on your browser"></span>
 </header>
 
 <div class="app">
@@ -235,7 +241,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
   </div>
 
   <aside class="props" id="props">
-    <div class="props-empty">Select a block<br>to edit it<br><br><span style="font-size:.75rem;opacity:.6">use ↗ to connect<br>two blocks with an arrow</span></div>
+    <div class="props-empty">Select a block<br>to edit it<br><br><span style="font-size:.75rem;opacity:.6">use ↗ to connect<br>two blocks with an arrow</span><br><br><span id="props-voice-note" style="font-size:.68rem;opacity:.5;line-height:1.6"></span></div>
   </aside>
 </div>
 
@@ -1103,6 +1109,42 @@ document.getElementById('canvas').addEventListener('mousedown', e => {
 document.getElementById('board-name').addEventListener('keydown', e => { if(e.key==='Enter') e.target.blur(); });
 document.getElementById('chk-base64').addEventListener('change', updatePromptPreview);
 document.getElementById('boards-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeBoardModal(); });
+
+// ─── BROWSER VOICE COMPAT NOTICE ─────────────────────────────────────────────
+(function() {
+  const isBrave   = !!navigator.brave;
+  const isFirefox = navigator.userAgent.includes('Firefox');
+  const isSafari  = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+  const hasSpeech = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+  let cls, label, note;
+  if (isBrave) {
+    cls   = 'remote';
+    label = '🎤 Voice: Transcriber (Brave)';
+    note  = 'Web Speech API is blocked by Brave shields.\nVoice uses MediaRecorder → local Transcriber on port 4324.\nFallback: type manually in the dialog.';
+  } else if (isFirefox) {
+    cls   = 'remote';
+    label = '🎤 Voice: Transcriber (Firefox)';
+    note  = 'Firefox does not support Web Speech API.\nVoice uses MediaRecorder → local Transcriber on port 4324.\nFallback: type manually in the dialog.';
+  } else if (isSafari) {
+    cls   = 'limited';
+    label = '🎤 Voice: limited (Safari)';
+    note  = 'Voice dictation has limited support in Safari.';
+  } else if (hasSpeech) {
+    cls   = 'live';
+    label = '🎤 Voice: live (Chrome/Edge)';
+    note  = 'Web Speech API active — voice is transcribed live in-browser.\nNo server or Transcriber needed.';
+  } else {
+    cls   = 'remote';
+    label = '🎤 Voice: Transcriber';
+    note  = 'Voice uses local Transcriber on port 4324.\nFallback: type manually in the dialog.';
+  }
+
+  const pill = document.getElementById('voice-pill');
+  if (pill) { pill.className = 'voice-pill ' + cls; pill.textContent = label; }
+  const propsNote = document.getElementById('props-voice-note');
+  if (propsNote) propsNote.textContent = note;
+})();
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 pushHistory();
