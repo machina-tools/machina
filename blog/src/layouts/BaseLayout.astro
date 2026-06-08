@@ -91,9 +91,9 @@ const BREVO_ACTION = "https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_c
       font-size: 13px;
       font-weight: 500;
       color: var(--muted);
-      transition: color .15s;
+      transition: color .15s, text-shadow .15s;
     }
-    .nav-link:hover { color: var(--text); text-decoration: none; }
+    .nav-link:hover { color: #e07820; text-shadow: 0 0 4px #e07820, 0 0 12px #c96010, 0 0 28px #b04c00cc, 0 0 52px #b04c0066; text-decoration: none; }
     .nav-cta {
       padding: 6px 16px;
       background: linear-gradient(135deg, var(--teal), #0090e0);
@@ -181,7 +181,7 @@ const BREVO_ACTION = "https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_c
     .footer-logo img { height: 26px; width: auto; }
     .footer-links { display: flex; gap: 20px; }
     .footer-links a { font-size: 12px; color: var(--muted); }
-    .footer-links a:hover { color: var(--text); text-decoration: none; }
+    .footer-links a:hover { color: #e07820; text-shadow: 0 0 4px #e07820, 0 0 12px #c96010, 0 0 28px #b04c00cc; text-decoration: none; }
     .footer-copy { font-size: 12px; color: #2a3a5a; }
 
     @media (max-width: 640px) {
@@ -201,7 +201,6 @@ const BREVO_ACTION = "https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_c
     <span class="nav-label">Blog</span>
     <div class="nav-right">
       <a href={`${base}/`} class="nav-link">All posts</a>
-      <a href="https://machina.chat/#tools" class="nav-link">Tools</a>
       <a href="https://github.com/machina-tools/machina" class="nav-link" target="_blank">GitHub</a>
       <a href="https://machina.chat" class="nav-cta">machina.chat →</a>
     </div>

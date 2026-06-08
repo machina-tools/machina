@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 const base = import.meta.env.BASE_URL;
+const BREVO_ACTION = "https://5d3be9d9.sibforms.com/serve/MUIFAIn7IRpmiqnzJd2S_ckaeJU-t0nAn8FNfAFgvVW9hS1KpSrA9DaE02ZAQ5AIZnzWHb6C2sNme7xqNWzEjIOdNsgN6EXhqoM-VVDLEt5sD7rNJ945jIjBQhNt8SuZvjv5Fvbv3t5-dJQcOi6CoDCbSOIkH5jDhALn2idBp4phZZKiX5W_hd68H0v3pF2VCIAf15-BO87YU23kXw==";
 const allPosts = await Astro.glob('./posts/*.md');
 const posts = allPosts.sort((a, b) =>
   new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime()
@@ -25,6 +26,21 @@ function formatDate(d: string) {
   </div>
 
   <div class="content-wrap">
+
+    <!-- Newsletter card — same form as landing -->
+    <div class="nl-card">
+      <div class="nl-card-label">Stay in the loop</div>
+      <h2 class="nl-card-title">New tools, lessons, and AI workflow insights</h2>
+      <p class="nl-card-desc">Monthly digest of what was built, what was learned, and what's coming next. No spam.</p>
+      <form class="nl-form" method="POST" action={BREVO_ACTION}>
+        <input type="email" name="EMAIL" placeholder="your@email.com" required>
+        <button type="submit" class="nl-submit">Subscribe →</button>
+        <input type="text" name="email_address_check" value="" style="display:none">
+        <input type="hidden" name="locale" value="it">
+        <input type="hidden" name="html_type" value="simple">
+      </form>
+      <p class="nl-note">No spam · Unsubscribe anytime · Built with Brevo</p>
+    </div>
 
     {featured && (
       <div class="featured-section">
@@ -203,6 +219,46 @@ function formatDate(d: string) {
   .post-row-right time, .post-row-right span { font-size: 12px; color: var(--muted); }
   .post-row-right .arrow { color: var(--teal); font-size: 16px; margin-top: 8px; }
 
+  /* newsletter card */
+  .nl-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .nl-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,200,224,.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .nl-card-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--teal); margin-bottom: 12px;
+  }
+  .nl-card-title { font-size: 22px; font-weight: 800; letter-spacing: -.4px; margin-bottom: 10px; }
+  .nl-card-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+  .nl-form { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .nl-form input[type="email"] {
+    padding: 10px 16px; background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 7px; color: var(--text); font-size: 14px; outline: none;
+    width: 240px; transition: border-color .15s; font-family: var(--font);
+  }
+  .nl-form input[type="email"]:focus { border-color: var(--teal); }
+  .nl-form input[type="email"]::placeholder { color: #3a4a6a; }
+  .nl-submit {
+    padding: 10px 22px; background: linear-gradient(135deg, var(--teal), #0090e0);
+    color: #07080e; border: none; border-radius: 7px; font-weight: 700;
+    font-size: 14px; cursor: pointer; font-family: var(--font);
+    transition: opacity .15s;
+  }
+  .nl-submit:hover { opacity: .85; }
+  .nl-note { margin-top: 12px; font-size: 11px; color: #3a4a6a; }
+
   .tools-strip { padding: 32px 36px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; }
   .tools-strip-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 16px; }
   .tools-strip-items { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -221,5 +277,7 @@ function formatDate(d: string) {
     .post-row { flex-direction: column; gap: 12px; }
     .post-row-right { flex-direction: row; align-items: center; }
     .tools-strip { padding: 24px 20px; }
+    .nl-card { padding: 28px 20px; }
+    .nl-card-title { font-size: 18px; }
   }
 </style>
