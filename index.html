@@ -628,6 +628,28 @@
 </footer>
 
 <script>
+// Newsletter: intercept submit, fire no-cors fetch, show in-page confirmation
+document.querySelectorAll('.nl-form').forEach(form => {
+  if (form.dataset.nlAttached) return;
+  form.dataset.nlAttached = '1';
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Subscribing…';
+    try {
+      await fetch(form.action, { method: 'POST', body: new FormData(form), mode: 'no-cors' });
+    } catch (_) {}
+    const container = form.closest('.newsletter-wrap') || form.parentElement;
+    const note = container && container.querySelector('.nl-note');
+    const msg = document.createElement('p');
+    msg.style.cssText = 'margin-top:16px;font-size:15px;color:#4ade80;font-weight:600;text-align:center;';
+    msg.textContent = '✓ Almost there — check your inbox to confirm your subscription.';
+    form.replaceWith(msg);
+    if (note) note.style.display = 'none';
+  });
+});
+
 // Smooth reveal on scroll
 if ('IntersectionObserver' in window) {
   const io = new IntersectionObserver(entries => {
