@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BugCapture — Web</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3d;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --ok: #4ade80;
+    --warn: #fb923c;
+    --error: #f87171;
+    --radius: 10px;
+    --font: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Code', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 48px; gap: 20px; }
+
+  .web-banner { width: 100%; max-width: 780px; background: rgba(56,189,248,.06); border: 1px solid rgba(56,189,248,.18); border-radius: var(--radius); padding: 10px 16px; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .web-banner a { color: var(--accent); text-decoration: none; }
+  .web-banner a:hover { text-decoration: underline; }
+  .compat-pill { padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .compat-full  { background: rgba(74,222,128,.12); color: var(--ok);   border: 1px solid rgba(74,222,128,.3); }
+  .compat-mid   { background: rgba(251,146,60,.12);  color: var(--warn); border: 1px solid rgba(251,146,60,.3); }
+  .compat-limit { background: rgba(248,113,113,.10); color: var(--error);border: 1px solid rgba(248,113,113,.3); }
+
+  header { display: flex; align-items: center; gap: 14px; width: 100%; max-width: 780px; }
+  .logo { width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+  .web-tag { font-size: 10px; font-weight: 700; background: rgba(56,189,248,.15); border: 1px solid rgba(56,189,248,.3); color: var(--accent); padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; display: inline-block; }
+
+  .card { width: 100%; max-width: 780px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+
+  .rec-area { display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 12px 0; }
+  .rec-btn { width: 96px; height: 96px; border-radius: 50%; border: 3px solid var(--accent); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .2s, background .2s, transform .1s; flex-shrink: 0; }
+  .rec-btn:hover { background: rgba(56,189,248,.08); transform: scale(1.04); }
+  .rec-btn.recording { border-color: var(--error); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,.4); } 50% { box-shadow: 0 0 0 12px rgba(248,113,113,0); } }
+  .rec-btn svg { width: 38px; height: 38px; }
+  .rec-label { font-size: 0.82rem; color: var(--muted); text-align: center; }
+  .rec-label strong { color: var(--text); display: block; font-size: 1rem; margin-bottom: 4px; }
+  .timer { font-size: 2.2rem; font-family: var(--mono); color: var(--error); letter-spacing: 0.06em; display: none; }
+  .timer.visible { display: block; }
+
+  .options-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .opt-chip { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; color: var(--muted); cursor: pointer; user-select: none; transition: border-color .2s, color .2s, background .2s; }
+  .opt-chip input { display: none; }
+  .opt-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,.07); }
+  .opt-chip .dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid currentColor; }
+  .opt-chip.active .dot { background: currentColor; }
+
+  .status-bar { display: none; align-items: center; gap: 12px; padding: 14px 18px; background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 8px; width: 100%; }
+  .status-bar.visible { display: flex; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-text { font-size: 0.85rem; color: var(--muted); }
+  .status-text strong { color: var(--text); }
+
+  .transcription-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 10px; border-radius: 20px; }
+  .tb-live   { background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.25); color: var(--ok); }
+  .tb-remote { background: rgba(56,189,248,.1); border: 1px solid rgba(56,189,248,.25); color: var(--accent); }
+  .tb-manual { background: rgba(251,146,60,.1);  border: 1px solid rgba(251,146,60,.25);  color: var(--warn); }
+
+  .results { display: none; flex-direction: column; gap: 18px; }
+  .results.visible { display: flex; }
+  .section-title { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+
+  .transcript-box { background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.9rem; line-height: 1.6; max-height: 160px; overflow-y: auto; color: var(--text); }
+  .transcript-box:empty::before { content: 'No transcript'; color: var(--muted); font-style: italic; }
+  .notes-area { width: 100%; background: rgba(255,255,255,.03); border: 1px solid var(--warn); border-radius: 8px; padding: 12px 14px; font-size: 0.88rem; line-height: 1.6; color: var(--text); min-height: 100px; resize: vertical; outline: none; font-family: var(--font); }
+  .notes-area:focus { border-color: var(--accent); }
+  .notes-area::placeholder { color: var(--muted); font-style: italic; }
+
+  .frames-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+  .frame-thumb { flex-shrink: 0; border-radius: 6px; border: 2px solid var(--border); overflow: hidden; cursor: pointer; position: relative; transition: border-color .2s; }
+  .frame-thumb:hover { border-color: var(--accent); }
+  .frame-thumb img { display: block; height: 90px; width: auto; }
+  .frame-ts { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,.65); font-size: 0.68rem; font-family: var(--mono); color: #fff; text-align: center; padding: 2px 0; }
+
+  .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 999; align-items: center; justify-content: center; cursor: zoom-out; }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 92vw; max-height: 90vh; border-radius: 6px; }
+
+  .dl-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 8px; font-size: 0.84rem; font-weight: 600; cursor: pointer; border: none; transition: opacity .2s, transform .1s; }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-ghost { background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { background: rgba(255,255,255,.09); }
+
+  .meta-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.8rem; color: var(--muted); align-items: center; }
+  .meta-row span strong { color: var(--text); }
+
+  .err-box { display: none; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.25); border-radius: 8px; padding: 12px 16px; font-size: 0.84rem; color: var(--error); }
+  .err-box.visible { display: block; }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- Browser compatibility banner -->
+<div class="web-banner" id="compatBanner">
+  <span id="compatPill" class="compat-pill"></span>
+  <span id="compatMsg"></span>
+  <span style="margin-left:auto">For Whisper transcription →
+    <a href="https://github.com/machina-tools/machina/tree/main/tools/bugcapture" target="_blank">install locally</a>
+  </span>
+</div>
+
+<header>
+  <div class="logo">🎥</div>
+  <div>
+    <h1>Bug<span>Capture</span></h1>
+    <div class="subtitle">Record screen + audio → AI-ready bug report</div>
+    <span class="web-tag">Web version</span>
+  </div>
+</header>
+
+<div class="card">
+  <div class="rec-area">
+    <button class="rec-btn" id="recBtn" onclick="toggleRec()" title="Start/Stop recording">
+      <svg id="iconIdle" viewBox="0 0 24 24" fill="currentColor" style="color:var(--accent)">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+        <polygon points="10,8 10,16 17,12" fill="currentColor"/>
+      </svg>
+      <svg id="iconRec" viewBox="0 0 24 24" fill="currentColor" style="color:var(--error);display:none">
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".3"/>
+        <rect x="8.5" y="8.5" width="7" height="7" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <div class="timer" id="timer">00:00</div>
+
+    <div class="rec-label">
+      <strong id="recLabelMain">Click to record</strong>
+      <span id="recLabelSub">Screen + microphone · press again to stop</span>
+    </div>
+
+    <div class="options-row">
+      <label class="opt-chip active" id="chipMic">
+        <input type="checkbox" id="captureMic" checked>
+        <span class="dot"></span> Microphone
+      </label>
+      <label class="opt-chip active" id="chipScreen">
+        <input type="checkbox" id="captureScreen" checked>
+        <span class="dot"></span> Screen
+      </label>
+    </div>
+  </div>
+
+  <div class="status-bar" id="statusBar">
+    <div class="spinner"></div>
+    <div class="status-text" id="statusText">Processing...</div>
+  </div>
+
+  <div class="err-box" id="errBox"></div>
+</div>
+
+<!-- Results -->
+<div class="card results" id="results">
+  <div class="meta-row" id="metaRow"></div>
+
+  <div id="transcriptSection">
+    <div class="section-title" style="display:flex;align-items:center;gap:8px;">
+      Audio transcript
+      <span class="transcription-badge" id="transcriptBadge" style="display:none"></span>
+    </div>
+    <!-- Either the read-only box or the manual textarea -->
+    <div class="transcript-box" id="transcriptBox" style="display:none"></div>
+    <textarea class="notes-area" id="notesArea" style="display:none" placeholder="Transcription unavailable — describe the bug you recorded. This text will appear in the .md report."></textarea>
+  </div>
+
+  <div id="framesSection">
+    <div class="section-title">Screenshots (<span id="frameCount">0</span>)</div>
+    <div class="frames-strip" id="framesStrip"></div>
+    <div style="margin-top:8px;font-size:11px;color:var(--muted)" id="framesNote"></div>
+  </div>
+
+  <div>
+    <div class="section-title">Download report</div>
+    <div class="dl-row">
+      <button class="btn btn-primary" id="dlBase64" onclick="downloadMd()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download .md
+      </button>
+      <button class="btn btn-ghost" onclick="resetUI()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4"/></svg>
+        New recording
+      </button>
+    </div>
+    <div style="margin-top:10px;font-size:0.75rem;color:var(--muted)">
+      Images embedded as base64 — paste directly into Claude / ChatGPT-4o / Copilot Agent.
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="Screenshot">
+</div>
+
+<script>
+// ─── BROWSER DETECTION ────────────────────────────────────────────────────────
+const IS_BRAVE   = !!(navigator.brave);
+const IS_FIREFOX = navigator.userAgent.includes('Firefox');
+const IS_SAFARI  = navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome');
+const IS_CHROME  = !IS_BRAVE && !IS_FIREFOX && !IS_SAFARI && 'chrome' in window;
+const HAS_SPEECH = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+
+(function showCompatBanner() {
+  const pill = document.getElementById('compatPill');
+  const msg  = document.getElementById('compatMsg');
+  if (IS_FIREFOX) {
+    pill.className = 'compat-pill compat-mid';
+    pill.textContent = 'Firefox';
+    msg.textContent = 'Screen audio capture may be unavailable. Microphone + Transcriber (port 4324) used for transcript.';
+  } else if (IS_BRAVE) {
+    pill.className = 'compat-pill compat-mid';
+    pill.textContent = 'Brave';
+    msg.textContent = 'Web Speech API is blocked by Brave. Transcript via local Transcriber (port 4324) or manual entry.';
+  } else if (IS_SAFARI) {
+    pill.className = 'compat-pill compat-limit';
+    pill.textContent = 'Safari';
+    msg.textContent = 'Screen recording and audio transcription have limited support in Safari.';
+  } else {
+    pill.className = 'compat-pill compat-full';
+    pill.textContent = IS_CHROME ? 'Chrome / Edge' : 'Browser';
+    msg.textContent = HAS_SPEECH
+      ? 'Live transcription enabled via Web Speech API (runs in-browser, no server needed).'
+      : 'Transcript via local Transcriber (port 4324) or manual entry.';
+  }
+})();
+
+// ─── STATE ─────────────────────────────────────────────────────────────────────
+let mediaRecorder = null;
+let chunks = [];
+let timerInterval = null;
+let startTime = null;
+let currentSession = null;
+let recognition = null;
+let liveTranscript = '';
+
+// ─── CHIP TOGGLES ──────────────────────────────────────────────────────────────
+document.getElementById('chipMic').addEventListener('click', () => {
+  const cb = document.getElementById('captureMic');
+  setTimeout(() => document.getElementById('chipMic').classList.toggle('active', cb.checked), 0);
+});
+document.getElementById('chipScreen').addEventListener('click', () => {
+  const cb = document.getElementById('captureScreen');
+  setTimeout(() => document.getElementById('chipScreen').classList.toggle('active', cb.checked), 0);
+});
+
+// ─── RECORD ────────────────────────────────────────────────────────────────────
+function fmtTime(sec) {
+  return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+}
+
+async function toggleRec() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') stopRec();
+  else await startRec();
+}
+
+async function startRec() {
+  setError('');
+  liveTranscript = '';
+  const wantMic    = document.getElementById('captureMic').checked;
+  const wantScreen = document.getElementById('captureScreen').checked;
+  if (!wantScreen && !wantMic) { setError('Select at least one source.'); return; }
+
+  try {
+    let stream;
+    if (wantScreen) {
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 5 }, audio: true });
+      if (wantMic) {
+        try {
+          const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const ctx = new AudioContext();
+          const dest = ctx.createMediaStreamDestination();
+          if (screenStream.getAudioTracks().length)
+            ctx.createMediaStreamSource(new MediaStream(screenStream.getAudioTracks())).connect(dest);
+          ctx.createMediaStreamSource(new MediaStream(micStream.getAudioTracks())).connect(dest);
+          stream = new MediaStream([...screenStream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+        } catch { stream = screenStream; }
+      } else { stream = screenStream; }
+    } else {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+
+    chunks = [];
+    // Pick best supported mimeType
+    const mimeType = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm','audio/webm;codecs=opus','audio/webm']
+      .find(m => MediaRecorder.isTypeSupported(m)) || '';
+    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    mediaRecorder.onstop = onRecordingStop;
+    mediaRecorder.start(1000);
+
+    // Start live speech recognition if available and not blocked
+    if (HAS_SPEECH && !IS_BRAVE && !IS_FIREFOX) {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.continuous = true;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      recognition.onresult = e => {
+        for (let i = e.resultIndex; i < e.results.length; i++)
+          liveTranscript += e.results[i][0].transcript + ' ';
+      };
+      recognition.onerror = () => {};
+      try { recognition.start(); } catch {}
+    }
+
+    // UI
+    document.getElementById('recBtn').classList.add('recording');
+    document.getElementById('iconIdle').style.display = 'none';
+    document.getElementById('iconRec').style.display = 'block';
+    document.getElementById('recLabelMain').textContent = 'Recording…';
+    document.getElementById('recLabelSub').textContent = 'Click to stop';
+    document.getElementById('timer').classList.add('visible');
+    document.getElementById('results').classList.remove('visible');
+
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      document.getElementById('timer').textContent = fmtTime(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+
+    stream.getTracks().forEach(t => t.addEventListener('ended', () => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') stopRec();
+    }));
+  } catch (e) {
+    if (e.name !== 'NotAllowedError') setError(`Capture error: ${e.message}`);
+  }
+}
+
+function stopRec() {
+  if (recognition) { try { recognition.stop(); } catch {} recognition = null; }
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+  mediaRecorder?.stream?.getTracks()?.forEach(t => t.stop());
+  clearInterval(timerInterval);
+}
+
+// ─── AFTER RECORDING ───────────────────────────────────────────────────────────
+async function onRecordingStop() {
+  document.getElementById('recBtn').classList.remove('recording');
+  document.getElementById('iconIdle').style.display = 'block';
+  document.getElementById('iconRec').style.display = 'none';
+  document.getElementById('recLabelMain').textContent = 'Click to record';
+  document.getElementById('recLabelSub').textContent = 'Screen + microphone · press again to stop';
+  document.getElementById('timer').classList.remove('visible');
+
+  const mimeType = mediaRecorder?.mimeType || 'video/webm';
+  const blob = new Blob(chunks, { type: mimeType });
+  if (blob.size < 500) { setError('Recording too short or empty.'); return; }
+
+  const isVideoBlob = mimeType.startsWith('video/');
+  const durationSec = Math.floor((Date.now() - startTime) / 1000);
+
+  // ── 1. Extract frames (only if video blob) ───────────────────────────────────
+  let frames = [];
+  if (isVideoBlob) {
+    showStatus('Extracting screenshots…');
+    try { frames = await extractFrames(blob, 3); }
+    catch {}
+  }
+
+  // ── 2. Transcription cascade ─────────────────────────────────────────────────
+  let transcript = liveTranscript.trim();
+  let transcriptSource = transcript ? 'live' : null;
+
+  if (!transcript) {
+    showStatus('Transcribing audio…');
+    try {
+      const res = await fetch('http://127.0.0.1:4324/transcribe', {
+        method: 'POST',
+        headers: { 'Content-Type': mimeType },
+        body: blob,
+        signal: AbortSignal.timeout(60000),
+      });
+      const d = await res.json();
+      if (d.ok && d.text) { transcript = d.text; transcriptSource = 'remote'; }
+    } catch {}
+  }
+
+  hideStatus();
+
+  const sessionId = `bc_${Date.now()}`;
+  currentSession = { sessionId, durationSec, frames, transcript, transcriptSource };
+  showResults(currentSession);
+}
+
+// ─── FRAME EXTRACTION (canvas-based, no server) ────────────────────────────────
+function extractFrames(videoBlob, intervalSec) {
+  return new Promise(resolve => {
+    const video  = document.createElement('video');
+    video.muted  = true;
+    video.preload = 'auto';
+    const url    = URL.createObjectURL(videoBlob);
+    video.src    = url;
+
+    const finish = frames => { URL.revokeObjectURL(url); resolve(frames); };
+
+    video.addEventListener('loadedmetadata', async () => {
+      // Firefox webm sometimes reports Infinity — seek to large value to force duration
+      if (!isFinite(video.duration)) {
+        video.currentTime = 1e9;
+        await new Promise(r => video.addEventListener('timeupdate', r, { once: true }));
+        video.currentTime = 0;
+        await new Promise(r => video.addEventListener('seeked', r, { once: true }));
+      }
+      const duration = video.duration;
+      if (!isFinite(duration) || duration <= 0) return finish([]);
+
+      const timestamps = [];
+      for (let t = 0; t < duration; t += intervalSec) timestamps.push(t);
+      if (timestamps.length === 0) timestamps.push(0);
+
+      const canvas = document.createElement('canvas');
+      const ctx    = canvas.getContext('2d');
+      const frames = [];
+
+      for (const ts of timestamps) {
+        await new Promise(r => {
+          video.currentTime = ts;
+          video.addEventListener('seeked', () => {
+            canvas.width  = video.videoWidth  || 1280;
+            canvas.height = video.videoHeight || 720;
+            ctx.drawImage(video, 0, 0);
+            // Skip blank frames (solid black)
+            const b64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            frames.push({ ts: Math.floor(ts), b64 });
+            r();
+          }, { once: true });
+        });
+      }
+      finish(frames);
+    });
+
+    video.addEventListener('error', () => finish([]));
+    video.load();
+  });
+}
+
+// ─── RESULTS ──────────────────────────────────────────────────────────────────
+function showResults(data) {
+  const dMin = Math.floor(data.durationSec / 60);
+  const dSec = data.durationSec % 60;
+  const durStr = dMin > 0 ? `${dMin}m ${dSec}s` : `${dSec}s`;
+
+  document.getElementById('metaRow').innerHTML =
+    `<span><strong>${data.frames.length}</strong> screenshots</span>
+     <span>Duration: <strong>${durStr}</strong></span>
+     <span style="font-family:var(--mono);font-size:0.75rem;color:var(--muted)">${data.sessionId}</span>`;
+
+  // Transcript or manual textarea
+  const badge       = document.getElementById('transcriptBadge');
+  const box         = document.getElementById('transcriptBox');
+  const notesArea   = document.getElementById('notesArea');
+
+  if (data.transcript) {
+    badge.style.display = '';
+    if (data.transcriptSource === 'live') {
+      badge.className = 'transcription-badge tb-live';
+      badge.textContent = '✓ Live (Web Speech API)';
+    } else {
+      badge.className = 'transcription-badge tb-remote';
+      badge.textContent = '✓ Transcriber (port 4324)';
+    }
+    box.textContent = data.transcript;
+    box.style.display = '';
+    notesArea.style.display = 'none';
+  } else {
+    badge.style.display = '';
+    badge.className = 'transcription-badge tb-manual';
+    badge.textContent = '⚠ Manual — Transcriber not active';
+    box.style.display = 'none';
+    notesArea.style.display = '';
+    notesArea.focus();
+  }
+
+  // Frames
+  const strip = document.getElementById('framesStrip');
+  strip.innerHTML = '';
+  document.getElementById('frameCount').textContent = data.frames.length;
+  if (data.frames.length > 0) {
+    data.frames.forEach((f, i) => {
+      const div = document.createElement('div');
+      div.className = 'frame-thumb';
+      const min = Math.floor(f.ts / 60); const sec = f.ts % 60;
+      const label = min > 0 ? `${min}m${sec}s` : `${sec}s`;
+      div.innerHTML = `<img src="data:image/jpeg;base64,${f.b64}" alt="Frame ${i+1}"><div class="frame-ts">${label}</div>`;
+      div.onclick = () => openLightbox(f.b64);
+      strip.appendChild(div);
+    });
+    document.getElementById('framesNote').textContent = '';
+  } else {
+    document.getElementById('framesNote').textContent = 'No frames extracted — audio-only recording or browser limitation.';
+  }
+
+  document.getElementById('results').classList.add('visible');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─── MARKDOWN BUILD + DOWNLOAD ────────────────────────────────────────────────
+function buildMarkdown(data) {
+  const notesArea = document.getElementById('notesArea');
+  const transcript = data.transcript || notesArea.value.trim() || '_No audio description_';
+  const dMin = Math.floor(data.durationSec / 60);
+  const dSec = data.durationSec % 60;
+  const now  = new Date().toLocaleString('en-US');
+
+  let md = `# BugCapture Report\n\n`;
+  md += `**Date**: ${now}  \n`;
+  md += `**Duration**: ${dMin > 0 ? dMin + 'm ' : ''}${dSec}s  \n`;
+  md += `**Session ID**: ${data.sessionId}\n\n`;
+  md += `---\n\n## Audio / Notes\n\n${transcript}\n\n`;
+  if (data.frames.length > 0) {
+    md += `---\n\n## Sequential Screenshots\n\n`;
+    data.frames.forEach((f, i) => {
+      const min = Math.floor(f.ts / 60); const sec = f.ts % 60;
+      const label = min > 0 ? `${min}m ${sec}s` : `${sec}s`;
+      md += `### Screenshot ${i + 1} — ${label}\n\n`;
+      md += `![Screenshot ${i + 1}](data:image/jpeg;base64,${f.b64})\n\n`;
+    });
+  }
+  return md;
+}
+
+function downloadMd() {
+  if (!currentSession) return;
+  const md   = buildMarkdown(currentSession);
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `${currentSession.sessionId}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ─── UI HELPERS ────────────────────────────────────────────────────────────────
+function showStatus(msg) {
+  document.getElementById('statusText').innerHTML = msg;
+  document.getElementById('statusBar').classList.add('visible');
+}
+function hideStatus() { document.getElementById('statusBar').classList.remove('visible'); }
+function setError(msg) {
+  const box = document.getElementById('errBox');
+  box.textContent = msg;
+  box.classList.toggle('visible', !!msg);
+}
+function resetUI() {
+  currentSession = null;
+  liveTranscript = '';
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('errBox').classList.remove('visible');
+  document.getElementById('timer').textContent = '00:00';
+  document.getElementById('notesArea').value = '';
+  chunks = [];
+}
+function openLightbox(b64) {
+  document.getElementById('lightboxImg').src = `data:image/jpeg;base64,${b64}`;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+</body>
+</html>

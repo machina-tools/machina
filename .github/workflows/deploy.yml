@@ -39,6 +39,10 @@ jobs:
           cp -r blog/dist/. _site/blog/
           mkdir -p _site/tools/promptboard
           cp tools/promptboard/index.html _site/tools/promptboard/
+          mkdir -p _site/tools/learnboard
+          cp tools/learnboard/index-web.html _site/tools/learnboard/
+          mkdir -p _site/tools/bugcapture
+          cp tools/bugcapture/index-web.html _site/tools/bugcapture/
 
       - uses: actions/upload-pages-artifact@v3
         with:
