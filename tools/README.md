@@ -108,6 +108,35 @@ Read LEARNING.md at session start to remember preferences and past lessons.
 
 ---
 
+## Transcriber
+
+**Local Whisper transcription service — voice backend for browser tools**
+
+| Requirement | Details |
+|-------------|---------|
+| Node.js | 18+ |
+| ffmpeg | Required (audio conversion) |
+| Whisper model | Auto-downloaded on first start (~150 MB) |
+
+**Used by:** PromptBoard (Firefox/Brave voice fallback), BugCapture Web, LearnBoard Web.  
+When Chrome/Edge is used, the Web Speech API handles transcription directly in the browser with no server needed. For all other browsers, the tools POST the recorded audio to `http://127.0.0.1:4324/transcribe`.
+
+**Configuration** (`.env`):
+```bash
+TRANSCRIBER_PORT=4324
+TRANSCRIBER_LANGUAGE=english   # or: italian, french, spanish, german…
+TRANSCRIBER_MODEL=Xenova/whisper-base   # tiny | base | small
+```
+
+**API:**
+```
+GET  /health      → { ok, ready, model, language }
+POST /transcribe  → body: audio blob (WebM/OGG) → { ok, text }
+POST /shutdown    → graceful stop
+```
+
+---
+
 ## PromptBoard
 
 **Visual canvas for building AI prompts**

@@ -25,6 +25,9 @@ Target: developers using AI agents (Copilot, Claude) for debugging.
 | ContextForge | 4328 | Git diff + SSH log + BugCapture → AI pre-session briefing |
 | LearnBoard | 4331 | UI for LEARNING.md — persistent AI memory with statistics |
 | PromptBoard | — | Single-file drag-and-drop canvas for building structured AI prompts |
+| Transcriber | 4324 | Local Whisper service — voice backend for PromptBoard (Firefox/Brave) and web tools |
+
+Web versions (no server needed, run on machina.chat): `index-web.html` in learnboard/ and bugcapture/. Voice cascade: Web Speech API (Chrome) → Transcriber 4324 → manual textarea.
 
 Each tool: `server.js` / `server.mjs`, `index.html`, `package.json`, `.env.example`.  
 Shared config: `~/.config/machina/servers.json`  

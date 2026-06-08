@@ -78,14 +78,22 @@ fi
 if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 ok "LearnBoard ready (port 4331)"
 
+# ── Install Transcriber ──
+info "Installing Transcriber..."
+cd "$(dirname "$0")/tools/transcriber"
+npm install --silent
+if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
+ok "Transcriber ready (port 4324) — Whisper model downloads on first start (~150 MB)"
+
 echo ""
 echo -e "${BOLD}Setup complete!${NC}"
 echo "─────────────────────────────────"
-echo "Start the tools:"
-echo "  cd tools/bugcapture  && node server.mjs"
-echo "  cd tools/contextforge && node server.js"
-echo "  cd tools/learnboard  && node server.js"
+echo "Start the tools (each in a separate terminal):"
+echo "  cd tools/bugcapture   && node server.mjs   # port 4327"
+echo "  cd tools/contextforge && node server.js    # port 4328"
+echo "  cd tools/learnboard   && node server.js    # port 4331"
+echo "  cd tools/transcriber  && node server.mjs   # port 4324 — voice for PromptBoard/web tools"
 echo ""
 echo "Then open the HTML files in your browser."
-echo "See README.md for full documentation."
+echo "See tools/README.md for full documentation."
 echo ""
