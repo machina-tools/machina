@@ -9,7 +9,7 @@ readingTime: 11
 
 Every sufficiently powerful technology changes the security landscape. AI is changing it faster than most, and on both sides simultaneously.
 
-The arms race framing is accurate but incomplete. It's not just that attackers and defenders are both getting better tools — the specific capabilities being added are asymmetric. Some AI capabilities help attackers more than defenders; others help defenders more. Understanding which is which helps you prioritize where to invest.
+The arms race framing is accurate but incomplete. It's not just that attackers and defenders are both getting better tools - the specific capabilities being added are asymmetric. Some AI capabilities help attackers more than defenders; others help defenders more. Understanding which is which helps you prioritize where to invest.
 
 ---
 
@@ -89,7 +89,7 @@ def get_user_data(user_id):
 
 The concern on the offensive side: the same capability that helps defenders find vulnerabilities faster also helps attackers. The bar for finding vulnerabilities has dropped. Attackers who previously needed deep expertise can now augment with AI-assisted research.
 
-**Phishing at scale**: The bottleneck for spear phishing was research time — gathering context about the target to write convincing personalized messages. LLMs dramatically reduce this cost.
+**Phishing at scale**: The bottleneck for spear phishing was research time - gathering context about the target to write convincing personalized messages. LLMs dramatically reduce this cost.
 
 ```python
 def analyze_phishing_risk_factors(target_info: dict) -> dict:
@@ -122,7 +122,7 @@ def analyze_phishing_risk_factors(target_info: dict) -> dict:
     return risk_assessment
 ```
 
-**Code generation for exploits**: The same LLMs that help developers write code help attackers write exploit code. This lowers the skill floor for certain types of attacks. The models typically have safeguards, but these can be bypassed in various ways — and open-source models have no central safeguard at all.
+**Code generation for exploits**: The same LLMs that help developers write code help attackers write exploit code. This lowers the skill floor for certain types of attacks. The models typically have safeguards, but these can be bypassed in various ways - and open-source models have no central safeguard at all.
 
 ---
 
@@ -359,4 +359,4 @@ The operational recommendation: use AI aggressively for code review and log anal
 
 ---
 
-*This article is the final entry in the AI internals series. Each article in this series builds on the previous ones — start from [the beginning](./linear-algebra-for-ai) or jump to any topic.*
+*This article is the final entry in the AI internals series. Each article in this series builds on the previous ones - start from [the beginning](./linear-algebra-for-ai) or jump to any topic.*

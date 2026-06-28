@@ -2,12 +2,12 @@
 layout: ../../layouts/PostLayout.astro
 title: "LLM Agentic Architecture: How Models Take Actions in the World"
 date: "2026-06-28"
-description: "An agent is a model that does more than answer questions — it plans, uses tools, observes results, and adjusts. Building agents well requires understanding the agentic loop, memory types, planning strategies, and the failure modes that compound across multi-step tasks. Here's the architecture."
+description: "An agent is a model that does more than answer questions - it plans, uses tools, observes results, and adjusts. Building agents well requires understanding the agentic loop, memory types, planning strategies, and the failure modes that compound across multi-step tasks. Here's the architecture."
 tag: "ai-internals"
 readingTime: 12
 ---
 
-The gap between a language model and an agent is a loop. A language model takes input and produces output, once. An agent takes input, produces an action, observes the result of that action, produces another action, and continues until it achieves a goal — or gets stuck.
+The gap between a language model and an agent is a loop. A language model takes input and produces output, once. An agent takes input, produces an action, observes the result of that action, produces another action, and continues until it achieves a goal - or gets stuck.
 
 This loop is what makes agents qualitatively different from question-answering systems. It also introduces failure modes that don't exist in single-shot generation: errors compound, context grows, and the model must track state across many turns.
 
@@ -184,7 +184,7 @@ class AgentMemory:
         self.max_context_tokens = max_context_tokens
         
         # 2. External (episodic): persisted across sessions
-        # Files, databases — survives restarts
+        # Files, databases - survives restarts
         self.persistent_notes: dict = {}
         
         # 3. Semantic (knowledge): retrieved when relevant
@@ -243,7 +243,7 @@ You are a helpful agent. For each task:
 Format your thinking as:
 Thought: [your reasoning]
 Action: [tool name and arguments]
-Observation: [tool result — filled in by the system]
+Observation: [tool result - filled in by the system]
 
 When done, just provide the final answer without any Action."""
 
@@ -325,7 +325,7 @@ class AgentOrchestrator:
     
     def execute_task(self, task: str, model_fn) -> str:
         """Break down task and route to appropriate agents."""
-        # This is simplified — real implementations need proper handoffs
+        # This is simplified - real implementations need proper handoffs
         subtasks = self.decompose_task(task, model_fn)
         results = {}
         
@@ -429,6 +429,6 @@ The fundamental challenge is that errors compound. A single incorrect tool call 
 
 ---
 
-*Next: [Tool Use — The Four Categories](./tool-use-categories) — a taxonomy of what kinds of tools agents use and how they should be implemented.*
+*Next: [Tool Use - The Four Categories](./tool-use-categories) - a taxonomy of what kinds of tools agents use and how they should be implemented.*
 
-*Previous: [Token Economy](./token-economy) — the cost implications of running agents at scale.*
+*Previous: [Token Economy](./token-economy) - the cost implications of running agents at scale.*

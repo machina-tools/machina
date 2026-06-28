@@ -11,7 +11,7 @@ There's a distinction worth making between two types of improvement in language 
 
 The first is **pretraining scaling**: more parameters, more data, more compute. Performance improves predictably as a power law. You can forecast where a bigger model will land before training it.
 
-The second is **test-time scaling**: allocating more computation at inference time — not more parameters, but more sequential thinking steps. A model that "thinks" for 30 seconds on a hard problem can outperform a larger model that answers in 1 second.
+The second is **test-time scaling**: allocating more computation at inference time - not more parameters, but more sequential thinking steps. A model that "thinks" for 30 seconds on a hard problem can outperform a larger model that answers in 1 second.
 
 Reasoning models are the result of training models to exploit test-time scaling through extended chain-of-thought reasoning, shaped by reinforcement learning on outcome feedback.
 
@@ -40,7 +40,7 @@ Let me think through this step by step.
 #  Answer: 2.5 hours"
 ```
 
-The improvement isn't because the model "gets smarter" when told to think step by step. It's because multi-step problems benefit from intermediate computations being explicit — the model can attend to its own intermediate steps and use them as working memory.
+The improvement isn't because the model "gets smarter" when told to think step by step. It's because multi-step problems benefit from intermediate computations being explicit - the model can attend to its own intermediate steps and use them as working memory.
 
 This is a structural advantage of the transformer: longer outputs provide more context for subsequent tokens. Writing out intermediate steps is functionally equivalent to having working memory.
 
@@ -48,7 +48,7 @@ This is a structural advantage of the transformer: longer outputs provide more c
 
 ## Why pretraining hits a ceiling
 
-For tasks that require complex reasoning — competitive mathematics, multi-hop logical inference, program synthesis — the pretraining scaling law predicts that you need exponentially more data and compute to achieve incremental gains.
+For tasks that require complex reasoning - competitive mathematics, multi-hop logical inference, program synthesis - the pretraining scaling law predicts that you need exponentially more data and compute to achieve incremental gains.
 
 The problem is data. There's a finite amount of high-quality mathematical reasoning in text corpora. You can train on every published proof and competition problem, and you still have a ceiling.
 
@@ -83,23 +83,23 @@ def rl_reasoning_step(model, problem: str, verifier) -> float:
 # No human rater needed. The reward signal is clean and scalable.
 ```
 
-For math, correctness can be verified by checking final answers against ground truth. For code, it can be verified by running tests. This gives an unlimited source of feedback — no need for pre-labeled demonstrations.
+For math, correctness can be verified by checking final answers against ground truth. For code, it can be verified by running tests. This gives an unlimited source of feedback - no need for pre-labeled demonstrations.
 
 ---
 
 ## What RL training actually learns
 
-RL for reasoning doesn't teach the model new mathematical facts. It teaches the model **how to think about problems** — which reasoning strategies to apply, when to decompose a problem, when to backtrack and try a different approach.
+RL for reasoning doesn't teach the model new mathematical facts. It teaches the model **how to think about problems** - which reasoning strategies to apply, when to decompose a problem, when to backtrack and try a different approach.
 
 This emerged empirically in the DeepSeek-R1 work: models trained with RL on math problems spontaneously developed behaviors like:
 
-**Reflection**: "Wait, let me re-examine step 3. I made an error — the formula requires absolute values here."
+**Reflection**: "Wait, let me re-examine step 3. I made an error - the formula requires absolute values here."
 
 **Hypothesis testing**: "One approach would be to try induction. If that doesn't work, I'll try a direct construction."
 
 **Error detection**: "I got 42, but let me double-check by substituting back into the original equation..."
 
-These behaviors weren't explicitly trained — they emerged from the optimization pressure to produce correct solutions. The model discovered that self-checking and reflection increases the probability of correct final answers.
+These behaviors weren't explicitly trained - they emerged from the optimization pressure to produce correct solutions. The model discovered that self-checking and reflection increases the probability of correct final answers.
 
 ```python
 # Simplified example of extended reasoning
@@ -125,7 +125,7 @@ The integers are n = 3 and n = 4.
 """
 ```
 
-The `<thinking>` block is actual computation happening before the final answer. It's not decoration — the intermediate tokens are available for the model to attend to, making each subsequent step more likely to be correct.
+The `<thinking>` block is actual computation happening before the final answer. It's not decoration - the intermediate tokens are available for the model to attend to, making each subsequent step more likely to be correct.
 
 ---
 
@@ -173,7 +173,7 @@ The relationship between test-time compute and performance for reasoning models 
 
 For pretraining: performance scales as a power law of compute with exponent ~0.076. Each 10× in compute gives roughly 20% performance improvement.
 
-For test-time reasoning: the relationship is task-dependent but generally steeper for hard tasks. On competition math, allowing the model to generate 10× as many reasoning tokens can double or triple the solve rate. This is because hard problems benefit disproportionately from extended thinking — easy problems are solved in the first few tokens regardless.
+For test-time reasoning: the relationship is task-dependent but generally steeper for hard tasks. On competition math, allowing the model to generate 10× as many reasoning tokens can double or triple the solve rate. This is because hard problems benefit disproportionately from extended thinking - easy problems are solved in the first few tokens regardless.
 
 ```python
 # Illustrative relationship between reasoning budget and solve rate
@@ -215,8 +215,8 @@ Reasoning models don't solve everything. A few persistent limitations:
 
 Reasoning models represent a different axis of scaling:
 
-- **Pretraining scaling**: more data, more parameters — diminishing returns on hard reasoning tasks
-- **Test-time scaling**: more sequential reasoning steps at inference — significant gains on hard tasks
+- **Pretraining scaling**: more data, more parameters - diminishing returns on hard reasoning tasks
+- **Test-time scaling**: more sequential reasoning steps at inference - significant gains on hard tasks
 
 The enabling technology is RL with verifiable reward signals (math correctness, code test passing) that provide clean feedback without human raters. The emergent behavior is self-reflection, error-correction, and hypothesis testing within extended reasoning chains.
 
@@ -224,6 +224,6 @@ The key insight: computation at inference time is fungible with computation at t
 
 ---
 
-*Next: [Mechanistic Interpretability](./mechanistic-interpretability) — tools for understanding what's happening inside these models.*
+*Next: [Mechanistic Interpretability](./mechanistic-interpretability) - tools for understanding what's happening inside these models.*
 
-*Previous: [Mixture of Experts](./mixture-of-experts) — the architecture that scales model capacity without proportional compute cost.*
+*Previous: [Mixture of Experts](./mixture-of-experts) - the architecture that scales model capacity without proportional compute cost.*

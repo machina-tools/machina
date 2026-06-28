@@ -2,12 +2,12 @@
 layout: ../../layouts/PostLayout.astro
 title: "Model Transparency: Does the Chain-of-Thought Actually Reflect What the Model Is Doing?"
 date: "2026-06-28"
-description: "Language models can explain their reasoning. The question is whether those explanations are true. Anthropic's work on 'Mitos' — faithful chain-of-thought — suggests that the relationship between visible reasoning and internal computation is more complicated than it appears. Here's the research and why it matters."
+description: "Language models can explain their reasoning. The question is whether those explanations are true. Anthropic's work on 'Mitos' - faithful chain-of-thought - suggests that the relationship between visible reasoning and internal computation is more complicated than it appears. Here's the research and why it matters."
 tag: "ai-internals"
 readingTime: 10
 ---
 
-When a language model shows its work — "First I'll consider X, then check Y, then conclude Z" — it feels like transparency. You can follow the reasoning, check each step, evaluate the logic.
+When a language model shows its work - "First I'll consider X, then check Y, then conclude Z" - it feels like transparency. You can follow the reasoning, check each step, evaluate the logic.
 
 The problem: there's no guarantee that this visible chain of reasoning corresponds to the actual computation that produced the answer. The model could arrive at an answer through a completely different internal process and then generate a plausible-sounding explanation post hoc.
 
@@ -25,7 +25,7 @@ The model actually works through the symptoms in the chain-of-thought, each step
 **Scenario B: Post-hoc rationalization**
 The model's pretrained weights encode a pattern-match ("these symptoms → this diagnosis"), produces the conclusion early in its internal processing, then generates a coherent-sounding explanation that would justify that conclusion.
 
-Both scenarios produce the same visible output. The outputs might even be identical. But only Scenario A is actually using the chain-of-thought as reasoning — in Scenario B, the reasoning is decoration.
+Both scenarios produce the same visible output. The outputs might even be identical. But only Scenario A is actually using the chain-of-thought as reasoning - in Scenario B, the reasoning is decoration.
 
 ---
 
@@ -64,7 +64,7 @@ Answer:""",
 # or is the answer computed internally and then the COT is generated to match?
 ```
 
-**Sycophantic reasoning**: When a model is prompted with a wrong answer ("I think it's 12, let me verify..."), it sometimes generates reasoning that reaches the wrong conclusion — not because the reasoning led there, but because the conclusion was anchored early.
+**Sycophantic reasoning**: When a model is prompted with a wrong answer ("I think it's 12, let me verify..."), it sometimes generates reasoning that reaches the wrong conclusion - not because the reasoning led there, but because the conclusion was anchored early.
 
 **Counterfactual reasoning gaps**: If you change the problem slightly in a way that should change the reasoning but not the structure, faithful reasoning should update. Unfaithful reasoning produces the same steps with cosmetic changes.
 
@@ -92,7 +92,7 @@ def measure_faithfulness(model, problem: str, cot_text: str, conclusion: str):
     tokens = model.to_tokens(full_prompt)
     
     # Find position of key intermediate conclusion in cot_text
-    # (simplified — real implementation requires token-level search)
+    # (simplified - real implementation requires token-level search)
     
     # Corrupt that intermediate conclusion (replace with negation or wrong value)
     corrupted_cot = corrupt_intermediate_step(cot_text)
@@ -112,13 +112,13 @@ def measure_faithfulness(model, problem: str, cot_text: str, conclusion: str):
     }
 ```
 
-The finding: faithfulness varies. Simple arithmetic chains-of-thought tend to be faithful — the intermediate results genuinely constrain subsequent steps. Complex reasoning about ambiguous situations is often less faithful, with the model generating reasoning that would justify a conclusion it had already settled on.
+The finding: faithfulness varies. Simple arithmetic chains-of-thought tend to be faithful - the intermediate results genuinely constrain subsequent steps. Complex reasoning about ambiguous situations is often less faithful, with the model generating reasoning that would justify a conclusion it had already settled on.
 
 ---
 
 ## The residual stream tells a different story
 
-One revealing approach: use the logit lens to track when the model "decides" the answer — by projecting intermediate residual stream states onto the vocabulary to see what the model would predict at each layer.
+One revealing approach: use the logit lens to track when the model "decides" the answer - by projecting intermediate residual stream states onto the vocabulary to see what the model would predict at each layer.
 
 ```python
 from transformer_lens import HookedTransformer
@@ -164,7 +164,7 @@ for layer, info in results.items():
     print(f"  {layer:2d}   {info['top_token']:<12} {info['target_prob']:.3f}")
 ```
 
-For factual questions, the answer typically converges several layers before the final layer. The last few layers are doing output formatting, not adding new information. This is fine for factual recall — but it means that if you ask the model to "show its reasoning" after it's already internally computed the answer, the reasoning cannot be causally upstream of the answer.
+For factual questions, the answer typically converges several layers before the final layer. The last few layers are doing output formatting, not adding new information. This is fine for factual recall - but it means that if you ask the model to "show its reasoning" after it's already internally computed the answer, the reasoning cannot be causally upstream of the answer.
 
 ---
 
@@ -204,13 +204,13 @@ Result: [number/value]
 
 If you're building on top of language models and relying on their explanations:
 
-**Don't use explanations as a substitute for verification.** A convincing-sounding chain-of-thought doesn't mean the answer is correct — or that the reasoning was the actual process. Verify conclusions independently.
+**Don't use explanations as a substitute for verification.** A convincing-sounding chain-of-thought doesn't mean the answer is correct - or that the reasoning was the actual process. Verify conclusions independently.
 
 **Structured reasoning prompts increase faithfulness.** Forcing the model to write specific intermediate values (not just describe reasoning steps) makes unfaithful reasoning harder to generate.
 
 **Interpretability probes can detect answer-anchoring.** If you have access to model internals, tracking when the residual stream converges on an answer can tell you whether the subsequent reasoning is upstream or downstream of the conclusion.
 
-**Reasoning model chains (o1, R1) are more likely faithful.** When the reasoning and answer are jointly trained with RL (see [reasoning models](./reasoning-models-rl-scaling)), the chain is under more pressure to actually be useful for producing correct answers — not just to look plausible.
+**Reasoning model chains (o1, R1) are more likely faithful.** When the reasoning and answer are jointly trained with RL (see [reasoning models](./reasoning-models-rl-scaling)), the chain is under more pressure to actually be useful for producing correct answers - not just to look plausible.
 
 ---
 
@@ -221,12 +221,12 @@ The faithfulness problem distinguishes between two types of "showing your work":
 - **Causally faithful**: the visible reasoning genuinely constrains the conclusion, step by step
 - **Post-hoc rationalization**: the conclusion is reached by other means; the reasoning is generated to justify it
 
-Current evidence suggests both happen, with faithfulness varying by task type, model, and prompting strategy. Mechanistic interpretability tools — logit lens, activation patching — can distinguish between them in specific cases.
+Current evidence suggests both happen, with faithfulness varying by task type, model, and prompting strategy. Mechanistic interpretability tools - logit lens, activation patching - can distinguish between them in specific cases.
 
 This matters for any application that relies on explanations: debugging, medical advice, legal analysis. A well-formatted false explanation can be harder to catch than a straightforward wrong answer.
 
 ---
 
-*Next: [Prediction Is Not Reasoning](./prediction-is-not-reasoning) — the fundamental debate about what LLMs are actually doing.*
+*Next: [Prediction Is Not Reasoning](./prediction-is-not-reasoning) - the fundamental debate about what LLMs are actually doing.*
 
-*Previous: [Sparse Autoencoders](./sparse-autoencoders) — tools for inspecting the internal representations that produce these outputs.*
+*Previous: [Sparse Autoencoders](./sparse-autoencoders) - tools for inspecting the internal representations that produce these outputs.*

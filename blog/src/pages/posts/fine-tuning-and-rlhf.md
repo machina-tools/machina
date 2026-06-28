@@ -2,12 +2,12 @@
 layout: ../../layouts/PostLayout.astro
 title: "Fine-Tuning and RLHF: From Text Completer to Useful Assistant"
 date: "2026-06-28"
-description: "A pretrained language model is a text completer — not an assistant. Getting from one to the other takes two additional training stages: supervised fine-tuning and reinforcement learning from human feedback (RLHF). Here's what each stage does, why both are necessary, and how DPO replaced the original RLHF pipeline."
+description: "A pretrained language model is a text completer - not an assistant. Getting from one to the other takes two additional training stages: supervised fine-tuning and reinforcement learning from human feedback (RLHF). Here's what each stage does, why both are necessary, and how DPO replaced the original RLHF pipeline."
 tag: "ai-internals"
 readingTime: 12
 ---
 
-A pretrained language model knows a lot. It's seen most of the internet and a significant portion of published text. Ask it "what is the capital of France?" and it can answer correctly — but it might also continue the question as if it were a quiz, add an incorrect answer variant, or complete it as the start of a geography textbook.
+A pretrained language model knows a lot. It's seen most of the internet and a significant portion of published text. Ask it "what is the capital of France?" and it can answer correctly - but it might also continue the question as if it were a quiz, add an incorrect answer variant, or complete it as the start of a geography textbook.
 
 The model doesn't know it's supposed to be an assistant. It knows text patterns. Getting from "text completer" to "useful assistant" requires additional training stages that teach the model how to behave, not just what to know.
 
@@ -61,9 +61,9 @@ def sft_train_step(model, optimizer, batch, ignore_index=-100):
     return loss.item()
 ```
 
-The key detail: during SFT, the loss is computed only on the **response** tokens, not the instruction tokens. We're teaching the model "given this kind of prompt, produce this kind of response" — not training it on the instruction itself.
+The key detail: during SFT, the loss is computed only on the **response** tokens, not the instruction tokens. We're teaching the model "given this kind of prompt, produce this kind of response" - not training it on the instruction itself.
 
-SFT alone already makes a dramatic difference. The model learns the format: instructions get answered, questions get responses rather than narrative continuations. But it has a problem: the model is trained on human-written responses, which means it only learns the behaviors that were demonstrated in the dataset. Getting the balance right — helpful, honest, not harmful — is hard to capture in a static dataset.
+SFT alone already makes a dramatic difference. The model learns the format: instructions get answered, questions get responses rather than narrative continuations. But it has a problem: the model is trained on human-written responses, which means it only learns the behaviors that were demonstrated in the dataset. Getting the balance right - helpful, honest, not harmful - is hard to capture in a static dataset.
 
 ---
 
@@ -101,7 +101,7 @@ def preference_loss(reward_model, chosen_ids, rejected_ids, attn_mask_c, attn_ma
     return loss
 ```
 
-The reward model is essentially a classifier trained to predict which of two responses a human would prefer. Once trained, it can score any response — including ones not in the training data.
+The reward model is essentially a classifier trained to predict which of two responses a human would prefer. Once trained, it can score any response - including ones not in the training data.
 
 ---
 
@@ -127,7 +127,7 @@ def rlhf_reward(policy_logprobs, reference_logprobs, reward_model_score,
     return reward_model_score - kl_coeff * kl_divergence.sum(-1)
 ```
 
-The KL penalty is critical. Without it, the policy would quickly learn to generate text that games the reward model — producing responses that score high on the metric but are otherwise nonsensical or sycophantic. The penalty keeps the policy close to the reference model (the SFT model), ensuring it doesn't drift too far.
+The KL penalty is critical. Without it, the policy would quickly learn to generate text that games the reward model - producing responses that score high on the metric but are otherwise nonsensical or sycophantic. The penalty keeps the policy close to the reference model (the SFT model), ensuring it doesn't drift too far.
 
 PPO on language models is notoriously unstable. The training requires careful tuning, a separate reference model running in parallel, and constant monitoring. It works, but it's expensive.
 
@@ -191,17 +191,17 @@ DPO works directly on preference pairs without needing to train a reward model o
 
 It's worth being concrete about what SFT and RLHF change, and what they don't.
 
-**SFT** teaches format and style. The model learns: when the input looks like an instruction, produce a direct response. It doesn't add knowledge — the knowledge was already there from pretraining. It changes the input-output mapping.
+**SFT** teaches format and style. The model learns: when the input looks like an instruction, produce a direct response. It doesn't add knowledge - the knowledge was already there from pretraining. It changes the input-output mapping.
 
-**RLHF** adjusts preferences within the space SFT opened up. The model learns to prefer responses that humans rate as helpful, harmless, and honest. It also, as a side effect, learns to be sycophantic — which is the subject of the [next article](./sycophancy-rlhf-side-effect).
+**RLHF** adjusts preferences within the space SFT opened up. The model learns to prefer responses that humans rate as helpful, harmless, and honest. It also, as a side effect, learns to be sycophantic - which is the subject of the [next article](./sycophancy-rlhf-side-effect).
 
-Neither stage alters the underlying representations significantly. A probe trained on the pretrained model's activations to detect, say, medical knowledge still works nearly identically on the RLHF model. The knowledge didn't move — just the output distribution changed.
+Neither stage alters the underlying representations significantly. A probe trained on the pretrained model's activations to detect, say, medical knowledge still works nearly identically on the RLHF model. The knowledge didn't move - just the output distribution changed.
 
 ---
 
 ## The reference model
 
-Both PPO and DPO require a **reference model** — a frozen copy of the SFT model. This serves as the baseline that the KL penalty keeps the policy close to.
+Both PPO and DPO require a **reference model** - a frozen copy of the SFT model. This serves as the baseline that the KL penalty keeps the policy close to.
 
 In practice, this means you need to run two models simultaneously during RLHF training: the policy being trained and the frozen reference. For 70B-parameter models, this is expensive. Some techniques (LoRA-based RLHF) reduce the memory cost by training only adapter weights.
 
@@ -235,12 +235,12 @@ The pipeline from raw pretraining to deployed assistant:
 
 3. **Preference training (RLHF or DPO)**: uses human preference comparisons to further align the model's outputs with what humans find helpful, harmless, and honest.
 
-Each stage builds on the previous. You can't do RLHF on a raw pretrained model effectively — the SFT stage first teaches the format and style that makes preference comparisons meaningful.
+Each stage builds on the previous. You can't do RLHF on a raw pretrained model effectively - the SFT stage first teaches the format and style that makes preference comparisons meaningful.
 
 The model's capabilities come from pretraining. Everything after is direction.
 
 ---
 
-*Next: [Sycophancy — The Unintended Side Effect of RLHF](./sycophancy-rlhf-side-effect) — what happens when the training signal is human approval.*
+*Next: [Sycophancy - The Unintended Side Effect of RLHF](./sycophancy-rlhf-side-effect) - what happens when the training signal is human approval.*
 
-*Previous: [Pretraining — Why Predicting the Next Word Is Enough](./pretraining-next-token-prediction) — the stage that gives these later stages something to work with.*
+*Previous: [Pretraining - Why Predicting the Next Word Is Enough](./pretraining-next-token-prediction) - the stage that gives these later stages something to work with.*

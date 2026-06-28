@@ -15,7 +15,7 @@ Mixture of Experts (MoE) takes a different architecture: instead of one large fe
 
 ## Architecture overview
 
-In a standard transformer block, the feed-forward sublayer takes the residual stream vector, expands it through a large MLP, and projects it back. This is the expensive part — typically 2/3 of total compute in a dense model.
+In a standard transformer block, the feed-forward sublayer takes the residual stream vector, expands it through a large MLP, and projects it back. This is the expensive part - typically 2/3 of total compute in a dense model.
 
 In MoE, this FFN layer is replaced by `E` expert networks plus a router:
 
@@ -98,7 +98,7 @@ DeepSeek V3 uses an MoE configuration that's illustrative of where the field has
 | Active parameters per token | ~37B |
 | Architecture | 61 transformer layers |
 
-So at inference time, for any given token, only ~37B parameters actually compute anything. The other ~634B are unused. Yet the model has access to the full 671B parameter knowledge base — different tokens activate different subsets.
+So at inference time, for any given token, only ~37B parameters actually compute anything. The other ~634B are unused. Yet the model has access to the full 671B parameter knowledge base - different tokens activate different subsets.
 
 ```python
 # DeepSeek-style MoE configuration
@@ -131,7 +131,7 @@ print(f"Activation rate:   {active_ffn_params/total_ffn_params:.1%}")
 
 ## The router: load balancing is the hard part
 
-The router is a simple linear layer mapping token representations to expert scores. The training challenge: without additional constraints, the router will collapse — a small set of experts become universally preferred, while the rest are never selected and never trained.
+The router is a simple linear layer mapping token representations to expert scores. The training challenge: without additional constraints, the router will collapse - a small set of experts become universally preferred, while the rest are never selected and never trained.
 
 The solution is an **auxiliary load-balancing loss** that penalizes uneven expert utilization:
 
@@ -171,9 +171,9 @@ DeepSeek also uses expert-level bias terms and a "no auxiliary loss" approach ca
 
 ## Shared experts
 
-One innovation in DeepSeek's architecture is the **shared expert** — one FFN that every token always passes through, in addition to the top-k routed experts.
+One innovation in DeepSeek's architecture is the **shared expert** - one FFN that every token always passes through, in addition to the top-k routed experts.
 
-The rationale: some knowledge is universally needed regardless of the token's specific content — basic language structure, common syntactic patterns, high-frequency world knowledge. Having one expert always present for this prevents the routed experts from wasting capacity on universally-needed patterns.
+The rationale: some knowledge is universally needed regardless of the token's specific content - basic language structure, common syntactic patterns, high-frequency world knowledge. Having one expert always present for this prevents the routed experts from wasting capacity on universally-needed patterns.
 
 ```python
 class DeepSeekStyleMoE(nn.Module):
@@ -239,10 +239,10 @@ Mixture of Experts decouples two things that are coupled in dense models:
 
 With a router network selecting the right specialists for each token, you get dense-model-quality outputs at a fraction of the compute. The tradeoffs are increased training complexity, higher memory requirements, and load balancing overhead.
 
-The core architectural change is replacing a single large FFN layer with many smaller experts and a router. Everything else — attention, layer norm, residuals — stays the same.
+The core architectural change is replacing a single large FFN layer with many smaller experts and a router. Everything else - attention, layer norm, residuals - stays the same.
 
 ---
 
-*Next: [Reasoning Models and RL Scaling](./reasoning-models-rl-scaling) — what happens when you apply RL to model behavior after pretraining.*
+*Next: [Reasoning Models and RL Scaling](./reasoning-models-rl-scaling) - what happens when you apply RL to model behavior after pretraining.*
 
-*Previous: [Sycophancy](./sycophancy-rlhf-side-effect) — the behavioral side effects of preference training.*
+*Previous: [Sycophancy](./sycophancy-rlhf-side-effect) - the behavioral side effects of preference training.*

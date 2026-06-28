@@ -2,20 +2,20 @@
 layout: ../../layouts/PostLayout.astro
 title: "Quantization: Running Billion-Parameter Models on Consumer Hardware"
 date: "2026-06-28"
-description: "A 7B parameter model in full float32 needs 28GB of VRAM — too much for most consumer GPUs. Quantization compresses model weights to 4-bit or 8-bit integers, cutting memory by 4-8x with modest accuracy loss. Here's how asymmetric quantization works, what GGUF and bitsandbytes do, and when the tradeoffs make sense."
+description: "A 7B parameter model in full float32 needs 28GB of VRAM - too much for most consumer GPUs. Quantization compresses model weights to 4-bit or 8-bit integers, cutting memory by 4-8x with modest accuracy loss. Here's how asymmetric quantization works, what GGUF and bitsandbytes do, and when the tradeoffs make sense."
 tag: "ai-internals"
 readingTime: 12
 ---
 
 The numbers are striking. A 70B parameter model in float16 needs 140GB of GPU memory. A consumer workstation with two 24GB cards has 48GB. Without compression, state-of-the-art models simply don't fit.
 
-Quantization is the dominant technique for closing this gap. It converts the model's floating-point weights to lower-precision integer representations — typically 4 or 8 bits per weight instead of 16. Memory requirements drop by 4-8×, inference speed on memory-bandwidth-limited hardware often improves, and for well-implemented quantization, quality degradation is small.
+Quantization is the dominant technique for closing this gap. It converts the model's floating-point weights to lower-precision integer representations - typically 4 or 8 bits per weight instead of 16. Memory requirements drop by 4-8×, inference speed on memory-bandwidth-limited hardware often improves, and for well-implemented quantization, quality degradation is small.
 
 ---
 
 ## What's being quantized
 
-A model's memory usage is dominated by its weight matrices. For inference (not training), you don't need to store gradients — just the weights.
+A model's memory usage is dominated by its weight matrices. For inference (not training), you don't need to store gradients - just the weights.
 
 ```python
 import torch
@@ -39,7 +39,7 @@ for dtype in ["float32", "float16", "int8", "int4"]:
     int4:  3.3 GB
 ```
 
-INT4 quantization gets a 70B model from 140GB to ~35GB — fitting two high-end consumer GPUs with 24GB each.
+INT4 quantization gets a 70B model from 140GB to ~35GB - fitting two high-end consumer GPUs with 24GB each.
 
 The challenge: neural network weights are floating-point values, often in a range like [-3.0, 3.0]. Converting them to 4-bit integers (256 values for int8, 16 values for int4) introduces rounding errors. The question is how to minimize the accuracy impact.
 
@@ -108,7 +108,7 @@ print(f"Max error:    {(weights_asym - dq).abs().max():.6f}")
 print(f"Scale: {scale:.6f}, Zero point: {zp.item()}")
 ```
 
-Asymmetric quantization uses the full integer range more efficiently — each integer value represents a finer-grained subdivision of the actual weight distribution, rather than half the integer range going to a region where few weights exist.
+Asymmetric quantization uses the full integer range more efficiently - each integer value represents a finer-grained subdivision of the actual weight distribution, rather than half the integer range going to a region where few weights exist.
 
 ---
 
@@ -228,7 +228,7 @@ For Python-native workflows (HuggingFace, PyTorch), bitsandbytes provides 8-bit 
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
 
-# 4-bit quantization with NF4 (NormalFloat4) — optimal for normally distributed weights
+# 4-bit quantization with NF4 (NormalFloat4) - optimal for normally distributed weights
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_compute_dtype=torch.float16,  # compute in fp16, store in int4
@@ -254,7 +254,7 @@ for dtype, gb in memory.items():
     print(f"{dtype:>20}: {gb:.1f} GB")
 ```
 
-**NF4 (NormalFloat4)** is a non-uniform quantization scheme that places quantization levels at the quantiles of a standard normal distribution — the distribution that pretrained model weights approximately follow. This means more resolution where most weight values actually are.
+**NF4 (NormalFloat4)** is a non-uniform quantization scheme that places quantization levels at the quantiles of a standard normal distribution - the distribution that pretrained model weights approximately follow. This means more resolution where most weight values actually are.
 
 ---
 
@@ -281,13 +281,13 @@ Quantization reduces memory by converting float16/32 weights to int4/int8:
 
 - **Symmetric**: map [-max, max] to integer range
 - **Asymmetric**: store scale + zero_point, map [min, max] to unsigned integer range
-- **Per-group**: independent quantization per group of weights — lower error, more metadata
+- **Per-group**: independent quantization per group of weights - lower error, more metadata
 - **NF4**: non-uniform quantization optimized for normally distributed weights
 
 The quality-size tradeoff: INT8 is nearly lossless for most tasks. INT4 introduces noticeable degradation on complex reasoning at the extremes but is acceptable for general use. Below Q4, quality degrades significantly.
 
 ---
 
-*Next: [DwarfStar4 — A Case Study in Efficient Language Models](./dwarfstar4-efficient-llm) — quantization and architectural choices for models that run on minimal hardware.*
+*Next: [DwarfStar4 - A Case Study in Efficient Language Models](./dwarfstar4-efficient-llm) - quantization and architectural choices for models that run on minimal hardware.*
 
-*Previous: [The Inference Loop](./inference-loop) — the generation process that quantized models are optimized for.*
+*Previous: [The Inference Loop](./inference-loop) - the generation process that quantized models are optimized for.*

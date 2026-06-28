@@ -2,14 +2,14 @@
 layout: ../../layouts/PostLayout.astro
 title: "Backpropagation from Scratch: How Neural Networks Actually Learn"
 date: "2026-06-28"
-description: "Every weight in GPT-4 was adjusted by gradient descent, guided by backpropagation. It sounds complicated, but the core idea is straightforward: compute which direction to nudge each weight to reduce the loss, using the chain rule. Here's a complete implementation in NumPy — no PyTorch autograd, no magic."
+description: "Every weight in GPT-4 was adjusted by gradient descent, guided by backpropagation. It sounds complicated, but the core idea is straightforward: compute which direction to nudge each weight to reduce the loss, using the chain rule. Here's a complete implementation in NumPy - no PyTorch autograd, no magic."
 tag: "ai-internals"
 readingTime: 14
 ---
 
 When a language model gets better at predicting text, something specific is happening: a number called the **loss** goes down, and the millions (or billions) of weights in the model shift slightly in the direction that reduces it. The process that computes which direction to shift each weight is **backpropagation**.
 
-The name sounds intimidating. It isn't. It's the chain rule from calculus, applied systematically to every operation in the network. This article builds a two-layer network from scratch in NumPy — no autograd, no magic — and trains it. By the end you'll know exactly what PyTorch's `.backward()` is doing.
+The name sounds intimidating. It isn't. It's the chain rule from calculus, applied systematically to every operation in the network. This article builds a two-layer network from scratch in NumPy - no autograd, no magic - and trains it. By the end you'll know exactly what PyTorch's `.backward()` is doing.
 
 ---
 
@@ -43,7 +43,7 @@ The loss is a single number. It tells us how bad the model is on this batch, but
 
 The **gradient** of the loss with respect to a weight tells you the rate of change: if you increase this weight slightly, does the loss go up or down, and by how much?
 
-For a single parameter, this is just a derivative. For a model with millions of parameters, it's a vector of partial derivatives — one per weight.
+For a single parameter, this is just a derivative. For a model with millions of parameters, it's a vector of partial derivatives - one per weight.
 
 The key property: **move each weight in the direction opposite to its gradient**, and the loss decreases.
 
@@ -83,7 +83,7 @@ Real networks chain many operations: inputs go through a linear layer, then an a
 
 The chain rule handles this: if `z = f(g(x))`, then `dz/dx = (dz/dg) × (dg/dx)`.
 
-For a chain of three operations — say, `L = loss(activation(linear(x)))` — the gradient of L with respect to the weights in `linear` is:
+For a chain of three operations - say, `L = loss(activation(linear(x)))` - the gradient of L with respect to the weights in `linear` is:
 
 ```
 ∂L/∂W = (∂L/∂activation) × (∂activation/∂linear) × (∂linear/∂W)
@@ -233,7 +233,7 @@ Not bad for 1000 epochs with a tiny network.
 
 ## What gradient flow looks like in practice
 
-There's a useful mental model: the forward pass computes outputs, the backward pass computes gradients. Gradients flow backwards through the exact same operations — each one contributing its local derivative.
+There's a useful mental model: the forward pass computes outputs, the backward pass computes gradients. Gradients flow backwards through the exact same operations - each one contributing its local derivative.
 
 For a longer chain:
 
@@ -282,13 +282,13 @@ def examine_gradient_flow():
 examine_gradient_flow()
 ```
 
-Deep networks can suffer from **vanishing gradients** — gradients shrink as they flow backwards, leaving early layers with almost no learning signal. This is why ResNets use skip connections (residual streams), and why transformers use layer normalization. Both help gradients flow cleanly to early layers.
+Deep networks can suffer from **vanishing gradients** - gradients shrink as they flow backwards, leaving early layers with almost no learning signal. This is why ResNets use skip connections (residual streams), and why transformers use layer normalization. Both help gradients flow cleanly to early layers.
 
 ---
 
 ## The relationship to PyTorch autograd
 
-When you write PyTorch code and call `.backward()`, it's doing exactly what we implemented manually — traversing a computation graph in reverse and multiplying local gradients. The difference is that PyTorch builds this graph automatically during the forward pass.
+When you write PyTorch code and call `.backward()`, it's doing exactly what we implemented manually - traversing a computation graph in reverse and multiplying local gradients. The difference is that PyTorch builds this graph automatically during the forward pass.
 
 ```python
 import torch
@@ -381,10 +381,10 @@ Backpropagation is three things applied repeatedly:
 
 Nothing else. The "learning" in deep learning is this loop run millions of times on massive datasets. The [pretraining objective](./pretraining-next-token-prediction) for language models is next-token prediction; backpropagation is the mechanism that makes the weights improve at it.
 
-Understanding this means you know what `.backward()` does, why vanishing gradients hurt training, and why [activation functions](./activation-functions) are carefully chosen — they determine whether gradients survive the backward pass.
+Understanding this means you know what `.backward()` does, why vanishing gradients hurt training, and why [activation functions](./activation-functions) are carefully chosen - they determine whether gradients survive the backward pass.
 
 ---
 
-*Next: [Activation Functions](./activation-functions) — why non-linearity is necessary, and how the choice of activation function affects gradient flow.*
+*Next: [Activation Functions](./activation-functions) - why non-linearity is necessary, and how the choice of activation function affects gradient flow.*
 
-*Previous: [Linear Algebra for AI](./linear-algebra-for-ai) — the vector and matrix operations that backpropagation runs on.*
+*Previous: [Linear Algebra for AI](./linear-algebra-for-ai) - the vector and matrix operations that backpropagation runs on.*

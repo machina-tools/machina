@@ -15,7 +15,7 @@ Four categories cover almost every tool you'll build or use. Understanding the p
 
 ## Category 1: Code execution
 
-Code execution is the most powerful category. A model that can write and run code can perform arbitrary computation — data analysis, transformations, calculations, scraping, anything Python can do.
+Code execution is the most powerful category. A model that can write and run code can perform arbitrary computation - data analysis, transformations, calculations, scraping, anything Python can do.
 
 ```python
 import subprocess
@@ -225,7 +225,7 @@ The key design decision for RAG: chunking strategy. Documents should be split in
 
 ## Category 3: External services
 
-API calls to external services — databases, CRMs, calendars, version control, anything with an API.
+API calls to external services - databases, CRMs, calendars, version control, anything with an API.
 
 ```python
 import httpx
@@ -243,7 +243,7 @@ class DatabaseQueryTool:
     def run_query(self, query_type: str, **params) -> list[dict]:
         """
         Execute a predefined query by name.
-        The model cannot write arbitrary SQL — it selects from allowed queries.
+        The model cannot write arbitrary SQL - it selects from allowed queries.
         """
         ALLOWED_QUERIES = {
             "get_user_by_email": "SELECT id, name, email FROM users WHERE email = %s",
@@ -433,6 +433,6 @@ Every tool that a model can call is a potential attack surface. See [agent secur
 
 ---
 
-*Next: [Agent Security — Prompt Injection and How to Defend Against It](./agent-security) — the attack surface you create when tools can act on the world.*
+*Next: [Agent Security - Prompt Injection and How to Defend Against It](./agent-security) - the attack surface you create when tools can act on the world.*
 
-*Previous: [LLM Agentic Architecture](./llm-agentic-architecture) — the loop that these tools slot into.*
+*Previous: [LLM Agentic Architecture](./llm-agentic-architecture) - the loop that these tools slot into.*

@@ -2,24 +2,24 @@
 layout: ../../layouts/PostLayout.astro
 title: "Embedding: How a Language Model Turns Words Into Geometry"
 date: "2026-06-28"
-description: "The first thing an LLM does with your prompt is discard the text and replace every word with a list of numbers. That list is an embedding — a point in high-dimensional space. The geometry of that space encodes the structure of language. Here's what embeddings are, why the arithmetic works, and what they reveal about how meaning is stored."
+description: "The first thing an LLM does with your prompt is discard the text and replace every word with a list of numbers. That list is an embedding - a point in high-dimensional space. The geometry of that space encodes the structure of language. Here's what embeddings are, why the arithmetic works, and what they reveal about how meaning is stored."
 tag: "ai-internals"
 readingTime: 10
 ---
 
 When you send a prompt to a language model, the text is the last thing it actually works with.
 
-Before any attention, any feed-forward computation, any generation — the model converts every word (or word fragment) into a vector of floating-point numbers. That vector is an **embedding**. It's the only representation the model will use from that point on. The original characters are gone.
+Before any attention, any feed-forward computation, any generation - the model converts every word (or word fragment) into a vector of floating-point numbers. That vector is an **embedding**. It's the only representation the model will use from that point on. The original characters are gone.
 
-This isn't a limitation. Representing language as geometry turns out to be surprisingly powerful, and understanding why is foundational to understanding everything else in this series — attention, residual streams, and why techniques like [steering vectors](./steering-vectors-control-llm-activations) work at all.
+This isn't a limitation. Representing language as geometry turns out to be surprisingly powerful, and understanding why is foundational to understanding everything else in this series - attention, residual streams, and why techniques like [steering vectors](./steering-vectors-control-llm-activations) work at all.
 
 ---
 
 ## From text to numbers
 
-Before embedding, the text goes through **tokenization**: splitting into subword units called tokens. Not necessarily words — "running" might be one token, "unbelievable" might be three. Modern models use vocabularies of 32,000 to 128,000 tokens.
+Before embedding, the text goes through **tokenization**: splitting into subword units called tokens. Not necessarily words - "running" might be one token, "unbelievable" might be three. Modern models use vocabularies of 32,000 to 128,000 tokens.
 
-Each token in the vocabulary corresponds to one row in the **embedding matrix** — a learned lookup table of shape `(vocab_size, d_model)`. The value `d_model` is the model's internal dimension: 768 for GPT-2, 4096 for LLaMA-3-8B, up to 8192+ for larger models.
+Each token in the vocabulary corresponds to one row in the **embedding matrix** - a learned lookup table of shape `(vocab_size, d_model)`. The value `d_model` is the model's internal dimension: 768 for GPT-2, 4096 for LLaMA-3-8B, up to 8192+ for larger models.
 
 Processing a token means looking up its row in this matrix and retrieving the corresponding vector. That's it for the embedding step. Everything else is downstream computation.
 
@@ -53,7 +53,7 @@ The numbers are meaningless in isolation. What matters is their **relationships 
 
 The embedding matrix starts as random noise. It gets trained by the same objective that trains the entire model: predict the next token.
 
-Here's the key consequence: words that appear in similar contexts — that can plausibly follow the same preceding words — will be pulled toward similar embedding vectors during training. "Dog" and "puppy" appear in overlapping contexts ("she has a ___", "the ___ barked", "my neighbor's ___"), so their embeddings converge. "Dog" and "parliament" don't share contexts, so they stay apart.
+Here's the key consequence: words that appear in similar contexts - that can plausibly follow the same preceding words - will be pulled toward similar embedding vectors during training. "Dog" and "puppy" appear in overlapping contexts ("she has a ___", "the ___ barked", "my neighbor's ___"), so their embeddings converge. "Dog" and "parliament" don't share contexts, so they stay apart.
 
 Cosine similarity measures the angle between two vectors, normalized to [-1, 1]. It's the standard way to compare embeddings:
 
@@ -74,7 +74,7 @@ print(f" run /  sprint: {similarity(' run', ' sprint'):.3f}") # ~0.61
 print(f" fast /  slow:  {similarity(' fast', ' slow'):.3f}")  # ~0.55 (antonyms cluster!)
 ```
 
-Notice that "fast" and "slow" are fairly similar — they're both speed-related adjectives that appear in the same contexts ("a ___ runner", "the car was ___"). Antonyms cluster together because they share surrounding context, even though they mean opposite things. The embedding space encodes co-occurrence, not definition.
+Notice that "fast" and "slow" are fairly similar - they're both speed-related adjectives that appear in the same contexts ("a ___ runner", "the car was ___"). Antonyms cluster together because they share surrounding context, even though they mean opposite things. The embedding space encodes co-occurrence, not definition.
 
 ---
 
@@ -124,7 +124,7 @@ for word, score in nearest_token(query):
     print(f"  {word}: {score:.3f}")
 ```
 
-This arithmetic works because the model encodes relationships as directions. The direction from "France" to "Paris" (capital city relation) is similar to the direction from "Germany" to "Berlin". The embedding space isn't just grouping words — it's encoding the relational structure of language.
+This arithmetic works because the model encodes relationships as directions. The direction from "France" to "Paris" (capital city relation) is similar to the direction from "Germany" to "Berlin". The embedding space isn't just grouping words - it's encoding the relational structure of language.
 
 Note that the arithmetic isn't perfect. These are noisy approximations, and GPT-2's relatively small embedding space (768 dimensions) means more crowding and interference than larger models. The relationships exist, but the signal-to-noise ratio improves with scale.
 
@@ -132,7 +132,7 @@ Note that the arithmetic isn't perfect. These are noisy approximations, and GPT-
 
 ## What embeddings don't do: disambiguation
 
-One thing the embedding matrix cannot handle is context. "Bank" — financial institution or river bank — gets the same vector regardless of what surrounds it. Disambiguation is the attention mechanism's job.
+One thing the embedding matrix cannot handle is context. "Bank" - financial institution or river bank - gets the same vector regardless of what surrounds it. Disambiguation is the attention mechanism's job.
 
 You can see this directly by comparing the final-layer representation of the same token in different contexts:
 
@@ -144,7 +144,7 @@ def get_final_repr(sentence: str, token_str: str) -> torch.Tensor:
     final_layer = f"blocks.{model.cfg.n_layers - 1}.hook_resid_post"
     
     # Find token position by checking string representations
-    # (simplified — handles most cases)
+    # (simplified - handles most cases)
     token_strings = [model.to_string(t.item()) for t in tokens[0]]
     pos = next((i for i, s in enumerate(token_strings) if token_str in s), None)
     
@@ -159,7 +159,7 @@ final_sim = F.cosine_similarity(river.unsqueeze(0), finance.unsqueeze(0)).item()
 
 print(f"Initial similarity (embedding layer): 1.000")
 print(f"Final similarity (after all layers):  {final_sim:.3f}")
-# → typically 0.2–0.5 — the model has pulled them apart
+# → typically 0.2–0.5 - the model has pulled them apart
 ```
 
 By the final layer, the word "bank" in a river context and "bank" in a financial context have substantially different representations. The embedding matrix handed both the same starting point; 24 layers of attention updated them differently based on their surroundings.
@@ -170,7 +170,7 @@ By the final layer, the word "bank" in a river context and "bank" in a financial
 
 One structural detail that matters for interpretability: in most modern models, the **embedding matrix and unembedding matrix share weights**.
 
-The unembedding matrix (W_U) is what converts the final residual stream vector into a probability distribution over the vocabulary — it answers "which token should come next?" If W_E and W_U are tied (transposed versions of each other), then the space where the model encodes meaning and the space where it reads off predictions are the same space.
+The unembedding matrix (W_U) is what converts the final residual stream vector into a probability distribution over the vocabulary - it answers "which token should come next?" If W_E and W_U are tied (transposed versions of each other), then the space where the model encodes meaning and the space where it reads off predictions are the same space.
 
 ```python
 # Check if tied weights (true for GPT-2)
@@ -201,7 +201,7 @@ for word, score in logit_lens(sentence, 12):
 # Earlier layers are confused; later layers converge on "Paris"
 ```
 
-The logit lens reveals how the model builds toward its prediction across layers — and shows that meaningful computation is happening at every layer, not just the last one.
+The logit lens reveals how the model builds toward its prediction across layers - and shows that meaningful computation is happening at every layer, not just the last one.
 
 ---
 
@@ -213,22 +213,22 @@ Three things that follow directly from understanding embeddings:
 
 **Steering vectors are built on this foundation.** When you extract a "pessimism" direction by contrasting prompt pairs (as in the [steering vectors article](./steering-vectors-control-llm-activations)), you're finding a direction in the residual stream space that's a downstream descendant of the initial embeddings. The geometric structure is preserved through the layers.
 
-**Probing what a model "knows" at each layer.** The logit lens above is one example. More generally, you can train linear classifiers on top of intermediate residual stream activations to ask "at this layer, has the model figured out the subject's gender? the document's language? the user's intent?" Linear classifiers work here because the relevant information is linearly organized — which goes back to the embedding structure.
+**Probing what a model "knows" at each layer.** The logit lens above is one example. More generally, you can train linear classifiers on top of intermediate residual stream activations to ask "at this layer, has the model figured out the subject's gender? the document's language? the user's intent?" Linear classifiers work here because the relevant information is linearly organized - which goes back to the embedding structure.
 
 ---
 
 ## Summary
 
 - Every token maps to a vector in R^{d_model} via a learned lookup table
-- Tokens in similar contexts end up with similar vectors — meaning clusters geometrically
+- Tokens in similar contexts end up with similar vectors - meaning clusters geometrically
 - Semantic relationships (capital cities, verb tenses, professions) become vector directions you can do arithmetic with
 - Context-dependent meaning (word sense disambiguation) is handled downstream by attention, not the embedding matrix
 - The embedding and unembedding matrices share weights, making the input and output space the same geometric space
 
-The embedding layer is where text enters the model's internal geometry. Every other technique in this series — attention, residual streams, steering vectors, sparse autoencoders — operates on what the embedding layer produces.
+The embedding layer is where text enters the model's internal geometry. Every other technique in this series - attention, residual streams, steering vectors, sparse autoencoders - operates on what the embedding layer produces.
 
 ---
 
-*Next: [Self-Attention from Scratch — What the Transformer Block Actually Does](#) — how attention updates each token's representation using every other token in the context.*
+*Next: [Self-Attention from Scratch - What the Transformer Block Actually Does](#) - how attention updates each token's representation using every other token in the context.*
 
-*Related: [Steering Vectors — Changing What an LLM Wants Without Touching Its Weights](./steering-vectors-control-llm-activations) — uses the geometric structure described here to modify model behavior at inference time.*
+*Related: [Steering Vectors - Changing What an LLM Wants Without Touching Its Weights](./steering-vectors-control-llm-activations) - uses the geometric structure described here to modify model behavior at inference time.*

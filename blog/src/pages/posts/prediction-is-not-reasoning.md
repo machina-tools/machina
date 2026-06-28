@@ -9,7 +9,7 @@ readingTime: 10
 
 There's a debate in AI research that matters more than most: when a language model solves a math problem, is it reasoning, or is it doing sophisticated pattern completion?
 
-The stakes are real. If it's reasoning, then AI systems can be trusted in novel situations because they're applying principled inference. If it's pattern completion, their performance in new territory is unpredictable — and the convincing outputs are false confidence.
+The stakes are real. If it's reasoning, then AI systems can be trusted in novel situations because they're applying principled inference. If it's pattern completion, their performance in new territory is unpredictable - and the convincing outputs are false confidence.
 
 The honest answer is: it's mostly pattern completion, and the gap between that and principled reasoning shows up in predictable ways.
 
@@ -24,7 +24,7 @@ This is not the same as:
 - Applying logical rules that hold regardless of surface form
 - Generalizing from principles to novel cases
 
-A model that has read millions of math solutions has learned what correct math solutions look like. When it produces a correct solution, it might be doing something like reasoning — or it might be pattern-matching to solutions in the training distribution.
+A model that has read millions of math solutions has learned what correct math solutions look like. When it produces a correct solution, it might be doing something like reasoning - or it might be pattern-matching to solutions in the training distribution.
 
 The way to distinguish them is to test on inputs that differ from the training distribution in targeted ways.
 
@@ -57,7 +57,7 @@ REVERSAL_PAIRS = [
 # - Reverse direction: ~40% accuracy on pairs where the reverse
 #   form appears rarely in training data
 #
-# A system doing true reasoning should handle both directions equally —
+# A system doing true reasoning should handle both directions equally  - 
 # the logical relationship is symmetric.
 ```
 
@@ -129,7 +129,7 @@ def create_reversed_arithmetic(n_digits: int = 4) -> tuple[str, str]:
 
 Understanding that LLMs are primarily pattern completers predicts specific failure modes:
 
-**Plausible but wrong answers in new domains**: In training-distribution domains, the model's pattern for "this type of question gets this type of answer" is usually calibrated. In new domains, the model produces answers that match the surface pattern of answers in related domains — plausible-sounding, often wrong.
+**Plausible but wrong answers in new domains**: In training-distribution domains, the model's pattern for "this type of question gets this type of answer" is usually calibrated. In new domains, the model produces answers that match the surface pattern of answers in related domains - plausible-sounding, often wrong.
 
 ```python
 # A common failure pattern in practice:
@@ -149,11 +149,11 @@ Understanding that LLMs are primarily pattern completers predicts specific failu
 
 This isn't an argument that LLMs are useless or incapable of complex outputs. Pattern completion at sufficient scale and with the right training produces outputs that are practically indistinguishable from reasoning in many domains.
 
-For common tasks with clear training coverage — explaining code, summarizing text, answering factual questions in major domains — pattern completion gets you most of the way there.
+For common tasks with clear training coverage - explaining code, summarizing text, answering factual questions in major domains - pattern completion gets you most of the way there.
 
 The argument is more specific:
 
-**Don't confuse output quality with process reliability.** A convincing-sounding answer to a question outside the training distribution is not evidence of correct reasoning — it's evidence that the model has learned what correct answers to this kind of question look like.
+**Don't confuse output quality with process reliability.** A convincing-sounding answer to a question outside the training distribution is not evidence of correct reasoning - it's evidence that the model has learned what correct answers to this kind of question look like.
 
 **The distribution boundary matters.** Model performance is highest where training data was dense. It degrades in predictable ways as you move away from that distribution.
 
@@ -167,7 +167,7 @@ The argument is more specific:
 
 Evidence: reasoning models (o1, DeepSeek-R1) show more robust generalization on novel problem variants compared to base RLHF models. The degradation on format variants is smaller.
 
-But it doesn't eliminate the fundamental issue. Reasoning models trained on math show better math generalization — and weaker generalization to new domains where the RL training signal wasn't present.
+But it doesn't eliminate the fundamental issue. Reasoning models trained on math show better math generalization - and weaker generalization to new domains where the RL training signal wasn't present.
 
 ---
 
@@ -181,10 +181,10 @@ The distinction matters:
 
 Reversal curse, template sensitivity, and out-of-distribution degradation are empirical fingerprints of the pattern-completion mechanism.
 
-Using LLMs effectively means staying aware of which domain you're in — where their training data was dense enough that pattern completion tracks truth — and building verification workflows for cases where you're less sure.
+Using LLMs effectively means staying aware of which domain you're in - where their training data was dense enough that pattern completion tracks truth - and building verification workflows for cases where you're less sure.
 
 ---
 
-*Next: [LLM Fragility — Adversarial Inputs and Distribution Shift](./llm-fragility) — the practical failure modes this creates.*
+*Next: [LLM Fragility - Adversarial Inputs and Distribution Shift](./llm-fragility) - the practical failure modes this creates.*
 
-*Previous: [Model Transparency and Mitos](./model-transparency-mitos) — how chain-of-thought can be faithful or post-hoc.*
+*Previous: [Model Transparency and Mitos](./model-transparency-mitos) - how chain-of-thought can be faithful or post-hoc.*

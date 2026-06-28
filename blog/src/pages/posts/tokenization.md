@@ -2,12 +2,12 @@
 layout: ../../layouts/PostLayout.astro
 title: "Tokenization: Why Your Model Can't Count Letters"
 date: "2026-06-28"
-description: "Before a language model processes a single character, it runs tokenization — splitting text into subword chunks and converting them to integer IDs. This choice shapes what the model finds easy and hard: numbers, code, and non-English text all have quirks that trace back directly to how the tokenizer was built."
+description: "Before a language model processes a single character, it runs tokenization - splitting text into subword chunks and converting them to integer IDs. This choice shapes what the model finds easy and hard: numbers, code, and non-English text all have quirks that trace back directly to how the tokenizer was built."
 tag: "ai-internals"
 readingTime: 9
 ---
 
-Ask a large language model how many times the letter 'r' appears in "strawberry" and it will often get it wrong. Not because the model is bad at counting. Because it never sees the word "strawberry" — it sees three tokens, and counting letters requires reasoning about token internals that the model doesn't have direct access to.
+Ask a large language model how many times the letter 'r' appears in "strawberry" and it will often get it wrong. Not because the model is bad at counting. Because it never sees the word "strawberry" - it sees three tokens, and counting letters requires reasoning about token internals that the model doesn't have direct access to.
 
 Tokenization is the step that happens before anything else. It determines what granularity the model operates at, which patterns it can learn, and which tasks it will find systematically harder than they seem.
 
@@ -17,7 +17,7 @@ Tokenization is the step that happens before anything else. It determines what g
 
 Character-level models are the obvious choice: one token per character, huge flexibility, no vocabulary needed.
 
-The problem is sequence length. A 1000-character passage becomes 1000 tokens. A 100,000-token context limit drops to 100,000 characters — barely a few paragraphs. Transformer attention is quadratic in sequence length, so this matters enormously.
+The problem is sequence length. A 1000-character passage becomes 1000 tokens. A 100,000-token context limit drops to 100,000 characters - barely a few paragraphs. Transformer attention is quadratic in sequence length, so this matters enormously.
 
 Word-level tokenization is the other extreme. "running" is one token, but "runs", "runner", "ran" are all separate tokens. The vocabulary balloons to handle all forms, all names, all technical terms. Any word not in the training vocabulary becomes an unknown token.
 
@@ -155,7 +155,7 @@ The Russian word becomes 8 tokens (individual UTF-8 bytes) because the GPT-2 voc
 
 ## The consequences you'll notice
 
-**Numbers are fragmented unpredictably.** "1234567890" becomes 4 tokens in GPT-2 because specific number strings were frequent enough to get their own tokens, but longer numbers weren't. This is why arithmetic is hard for LLMs — the "digits" don't align with natural arithmetic boundaries.
+**Numbers are fragmented unpredictably.** "1234567890" becomes 4 tokens in GPT-2 because specific number strings were frequent enough to get their own tokens, but longer numbers weren't. This is why arithmetic is hard for LLMs - the "digits" don't align with natural arithmetic boundaries.
 
 ```python
 # GPT-2 tokenizer
@@ -178,7 +178,7 @@ for num in ["12", "123", "1234", "12345", "100", "999", "1000"]:
 
 ```python
 print(enc.encode("cat"))   # [9246]
-print(enc.encode(" cat"))  # [3797] — different token!
+print(enc.encode(" cat"))  # [3797] - different token!
 ```
 
 **Why "strawberry" is hard.** The word tokenizes into multiple tokens, and the model processes them as semantic units, not character sequences. Counting letters requires attending back to sub-token character structure that was discarded at the tokenization step.
@@ -186,10 +186,10 @@ print(enc.encode(" cat"))  # [3797] — different token!
 ```python
 tokens = [enc.decode([id]) for id in enc.encode("strawberry")]
 print(f"'strawberry' → {tokens}")
-# ['st', 'rawberry'] — two tokens, not 10 characters
+# ['st', 'rawberry'] - two tokens, not 10 characters
 ```
 
-The model only "sees" two tokens. To count 'r' characters, it needs to know the internal character composition of each token — which requires memorizing this during training, not deriving it.
+The model only "sees" two tokens. To count 'r' characters, it needs to know the internal character composition of each token - which requires memorizing this during training, not deriving it.
 
 ---
 
@@ -269,7 +269,7 @@ For well-written English text, a rough rule of thumb is ~4 characters per token.
 Tokenization is the first decision a language model system makes, and it echoes through everything downstream:
 
 - **BPE** builds the vocabulary by iteratively merging frequent adjacent pairs
-- **Space and case matter** — tokenization is not stable under simple text transformations
+- **Space and case matter** - tokenization is not stable under simple text transformations
 - **Numbers and code** tokenize in ways that don't align with their logical structure
 - **Non-English text** is penalized in vocabularies built primarily on English
 - **Larger vocabularies** are generally better, trading vocabulary memory for sequence efficiency
@@ -278,6 +278,6 @@ The model never sees characters. It sees integer IDs, which get converted to [em
 
 ---
 
-*Next: [Self-Attention from Scratch](./self-attention-from-scratch) — how the transformer uses these token vectors to let each position attend to every other position in the sequence.*
+*Next: [Self-Attention from Scratch](./self-attention-from-scratch) - how the transformer uses these token vectors to let each position attend to every other position in the sequence.*
 
-*Related: [Embedding — Words as Points in Space](./embedding-words-as-vectors) — what happens to token IDs once tokenization is done.*
+*Related: [Embedding - Words as Points in Space](./embedding-words-as-vectors) - what happens to token IDs once tokenization is done.*

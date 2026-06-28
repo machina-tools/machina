@@ -2,22 +2,22 @@
 layout: ../../layouts/PostLayout.astro
 title: "Pretraining: Why Predicting the Next Word Is Enough"
 date: "2026-06-28"
-description: "GPT-4, Claude, LLaMA — they all start from the same objective: predict the next token. No labels, no human feedback, no task-specific training. Just next-token prediction at scale. Here's why this deceptively simple objective produces models that reason, translate, write code, and pass medical exams."
+description: "GPT-4, Claude, LLaMA - they all start from the same objective: predict the next token. No labels, no human feedback, no task-specific training. Just next-token prediction at scale. Here's why this deceptively simple objective produces models that reason, translate, write code, and pass medical exams."
 tag: "ai-internals"
 readingTime: 11
 ---
 
-Every capability you've ever seen from a large language model — reasoning through a math problem, translating between languages it was never explicitly taught to translate, writing code in a framework released after its training cutoff — comes from a model that was trained to do exactly one thing: **predict the next token**.
+Every capability you've ever seen from a large language model - reasoning through a math problem, translating between languages it was never explicitly taught to translate, writing code in a framework released after its training cutoff - comes from a model that was trained to do exactly one thing: **predict the next token**.
 
 Not "reason". Not "be helpful". Not "write Python". Just: given the tokens so far, what comes next?
 
-This seems like it shouldn't work. The gap between "guessing the next word" and "explaining the causes of World War I" is enormous. And yet closing that gap doesn't require changing the objective — it only requires scale.
+This seems like it shouldn't work. The gap between "guessing the next word" and "explaining the causes of World War I" is enormous. And yet closing that gap doesn't require changing the objective - it only requires scale.
 
 ---
 
 ## The setup
 
-The training data is text. Enormous amounts of text: web pages, books, code, academic papers, forum discussions, Wikipedia — roughly compressed to some enormous number of tokens (trillions, in modern models). No human labels any of it. No one marks which outputs are correct. The supervision signal comes from the text itself.
+The training data is text. Enormous amounts of text: web pages, books, code, academic papers, forum discussions, Wikipedia - roughly compressed to some enormous number of tokens (trillions, in modern models). No human labels any of it. No one marks which outputs are correct. The supervision signal comes from the text itself.
 
 The procedure for a single training step:
 
@@ -29,7 +29,7 @@ The procedure for a single training step:
 
 ```python
 # A minimal example of the training objective
-# (illustrative — real training uses much larger batches and models)
+# (illustrative - real training uses much larger batches and models)
 
 import torch
 import torch.nn.functional as F
@@ -66,7 +66,7 @@ print(compute_loss("xqr7 fmz bloop trang wizzle"))
 # → ~10+ (random nonsense; model is very surprised)
 ```
 
-That's the entire training loop conceptually. The model gets better at predicting text. After enough steps on enough data, it has a detailed compressed model of the statistical structure of human language — including, it turns out, a huge amount of the knowledge embedded in that language.
+That's the entire training loop conceptually. The model gets better at predicting text. After enough steps on enough data, it has a detailed compressed model of the statistical structure of human language - including, it turns out, a huge amount of the knowledge embedded in that language.
 
 ---
 
@@ -118,23 +118,23 @@ for name, params in sizes.items():
     print(f"{name:<30} {params/1e9:>10.1f}B {loss:>15.3f}")
 ```
 
-The practical consequence: if you want to build a more capable model, the prescription is to use more parameters, more data, and more compute — in roughly the right ratios. The architecture barely changes. The objective doesn't change at all.
+The practical consequence: if you want to build a more capable model, the prescription is to use more parameters, more data, and more compute - in roughly the right ratios. The architecture barely changes. The objective doesn't change at all.
 
-This is the honest answer to "why did GPT-3 feel so different from GPT-2?" Not a new architecture. Not a new training objective. More of the same, at a scale where emergent behaviors — multi-step reasoning, in-context learning, code generation — started appearing.
+This is the honest answer to "why did GPT-3 feel so different from GPT-2?" Not a new architecture. Not a new training objective. More of the same, at a scale where emergent behaviors - multi-step reasoning, in-context learning, code generation - started appearing.
 
 ---
 
 ## What the model is actually learning
 
-It helps to think concretely about what the model's weights encode after pretraining. Not "knowledge" in a human sense — but compressed statistical patterns from text:
+It helps to think concretely about what the model's weights encode after pretraining. Not "knowledge" in a human sense - but compressed statistical patterns from text:
 
 **Factual associations.** "The speed of light is approximately ___" → "3 × 10^8 meters per second". The model has memorized this because it appears in the training data enough times that predicting it reduces loss.
 
-**Syntactic structure.** "The dogs that the cat ___ were chasing." → "saw" (not "sees", because "the dogs" is the subject of "were chasing", not the subject of the gap). The model learned subject-verb agreement, clause structure, reference resolution — all as patterns that reduce loss.
+**Syntactic structure.** "The dogs that the cat ___ were chasing." → "saw" (not "sees", because "the dogs" is the subject of "were chasing", not the subject of the gap). The model learned subject-verb agreement, clause structure, reference resolution - all as patterns that reduce loss.
 
 **Code patterns.** A function that starts with `def parse_date(s: str) ->` and has a docstring about ISO format is going to continue with something that handles date strings. The model knows this from patterns in code, not from understanding dates.
 
-**Reasoning chains.** Multi-step reasoning appears in text. Proofs, worked examples, step-by-step explanations. The model sees these often enough that it learns the statistical pattern of "problem → intermediate step → conclusion" — and can apply the pattern to new problems.
+**Reasoning chains.** Multi-step reasoning appears in text. Proofs, worked examples, step-by-step explanations. The model sees these often enough that it learns the statistical pattern of "problem → intermediate step → conclusion" - and can apply the pattern to new problems.
 
 None of this is "understanding" in the way humans understand. But it's precise enough to be useful, and it gets more precise at scale.
 
@@ -144,7 +144,7 @@ None of this is "understanding" in the way humans understand. But it's precise e
 
 A pretrained model is not a useful assistant. It's a text completer.
 
-Given "What is the capital of France?", a pretrained GPT-2 might continue "asked the teacher, and little Emily thought for a moment before raising her hand" — because that's a plausible continuation of that sentence pattern in fiction. It might give you the answer, or it might not, depending on what text structure the prompt most resembles.
+Given "What is the capital of France?", a pretrained GPT-2 might continue "asked the teacher, and little Emily thought for a moment before raising her hand" - because that's a plausible continuation of that sentence pattern in fiction. It might give you the answer, or it might not, depending on what text structure the prompt most resembles.
 
 Getting from text completion to useful assistant requires additional training:
 
@@ -152,7 +152,7 @@ Getting from text completion to useful assistant requires additional training:
 
 2. **RLHF (Reinforcement Learning from Human Feedback):** have humans rate responses; train the model to produce responses humans prefer. This is where safety behaviors, politeness, and much of the model's "personality" come from.
 
-Both of these build on the pretrained model. They're adjustments to a system that already knows an enormous amount from pretraining — they direct that knowledge, they don't create it.
+Both of these build on the pretrained model. They're adjustments to a system that already knows an enormous amount from pretraining - they direct that knowledge, they don't create it.
 
 ---
 
@@ -183,7 +183,7 @@ This is a useful diagnostic when building on language models: if your generated 
 
 ## The training loop in full
 
-Putting it together: pretraining is a massive optimization where the model's parameters are adjusted to minimize the average surprise on a large text corpus. The learning is entirely self-supervised — no labels, no human judgments, just the structure latent in the text.
+Putting it together: pretraining is a massive optimization where the model's parameters are adjusted to minimize the average surprise on a large text corpus. The learning is entirely self-supervised - no labels, no human judgments, just the structure latent in the text.
 
 What comes out is a model with:
 - A detailed embedding space (as described in the [previous article](./embedding-words-as-vectors))
@@ -191,10 +191,10 @@ What comes out is a model with:
 - Feed-forward layers that store factual associations
 - A residual stream that accumulates context into a prediction
 
-All of this was learned from "predict the next word". The simplicity of the objective is the point — it's general enough to capture everything in text, and text contains a compressed representation of almost everything humans know.
+All of this was learned from "predict the next word". The simplicity of the objective is the point - it's general enough to capture everything in text, and text contains a compressed representation of almost everything humans know.
 
 ---
 
-*Next: [RLHF — From Text Completer to Useful Assistant](#) — what happens after pretraining and why it changes the model's behavior so dramatically.*
+*Next: [RLHF - From Text Completer to Useful Assistant](#) - what happens after pretraining and why it changes the model's behavior so dramatically.*
 
-*Previous: [Embedding — Words as Points in Space](./embedding-words-as-vectors) — the lookup table that converts tokens into the vectors pretraining operates on.*
+*Previous: [Embedding - Words as Points in Space](./embedding-words-as-vectors) - the lookup table that converts tokens into the vectors pretraining operates on.*

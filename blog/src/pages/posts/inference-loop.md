@@ -7,7 +7,7 @@ tag: "ai-internals"
 readingTime: 11
 ---
 
-Once a language model is trained, generation is surprisingly straightforward conceptually: run the forward pass, pick a token, append it to the sequence, repeat. But the details — how tokens are selected, what's cached, how different sampling strategies change the output — matter enormously for building with LLMs.
+Once a language model is trained, generation is surprisingly straightforward conceptually: run the forward pass, pick a token, append it to the sequence, repeat. But the details - how tokens are selected, what's cached, how different sampling strategies change the output - matter enormously for building with LLMs.
 
 This article covers the mechanics from first principles, with enough detail to understand the performance characteristics you'll encounter in practice.
 
@@ -47,7 +47,7 @@ def generate_naive(model, prompt: str, n_tokens: int = 50) -> str:
 # each time processing 100, 101, 102... tokens
 ```
 
-The performance problem is clear: at step 50, you're running the full attention computation over 150 tokens to produce one token. Every intermediate computation for the first 149 tokens is identical to what was computed at step 49 — it's entirely redundant.
+The performance problem is clear: at step 50, you're running the full attention computation over 150 tokens to produce one token. Every intermediate computation for the first 149 tokens is identical to what was computed at step 49 - it's entirely redundant.
 
 ---
 
@@ -102,7 +102,7 @@ class KVCache:
 def attention_with_kv_cache(q_new, k_cache, v_cache, d_head):
     """
     Compute attention for a single new query against cached K, V.
-    q_new: (batch, n_heads, 1, d_head) — single new position
+    q_new: (batch, n_heads, 1, d_head) - single new position
     k_cache: (batch, n_heads, seq_so_far, d_head)
     v_cache: (batch, n_heads, seq_so_far, d_head)
     """
@@ -132,7 +132,7 @@ At large context lengths (100K+) or large batches, the KV cache dominates memory
 
 ## Sampling strategies
 
-Greedy decoding (always picking the most likely token) produces repetitive, boring text. The alternative is to sample from the distribution — but raw sampling from the full distribution often produces incoherent outputs. Several techniques tame this:
+Greedy decoding (always picking the most likely token) produces repetitive, boring text. The alternative is to sample from the distribution - but raw sampling from the full distribution often produces incoherent outputs. Several techniques tame this:
 
 ### Temperature
 
@@ -273,7 +273,7 @@ def beam_search(model, prompt: str, beam_size: int = 5, max_tokens: int = 50) ->
     return model.to_string(best_seq[0])
 ```
 
-Beam search maximizes probability — but maximum probability is not always the best text. Beam search tends to produce generic, repetitive text because the globally most probable sequence is often boring. Most production systems use sampling (top-p or top-k) for open-ended generation and beam search only for constrained tasks (translation, summarization with strict length).
+Beam search maximizes probability - but maximum probability is not always the best text. Beam search tends to produce generic, repetitive text because the globally most probable sequence is often boring. Most production systems use sampling (top-p or top-k) for open-ended generation and beam search only for constrained tasks (translation, summarization with strict length).
 
 ---
 
@@ -348,6 +348,6 @@ The **KV cache** makes this efficient: cache K and V tensors from previous steps
 
 ---
 
-*Next: [Quantization](./quantization) — how models are compressed for deployment on hardware with limited memory.*
+*Next: [Quantization](./quantization) - how models are compressed for deployment on hardware with limited memory.*
 
-*Previous: [LLM Fragility](./llm-fragility) — the failure modes that occur during generation.*
+*Previous: [LLM Fragility](./llm-fragility) - the failure modes that occur during generation.*

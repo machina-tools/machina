@@ -2,14 +2,14 @@
 layout: ../../layouts/PostLayout.astro
 title: "The Token Economy: What It Costs to Run an LLM at Scale"
 date: "2026-06-28"
-description: "Every token you send to an LLM API costs money, and the costs compound quickly at scale. Understanding where the compute goes — prefill vs decode, context length effects, batching — helps you build applications that are both capable and economically viable."
+description: "Every token you send to an LLM API costs money, and the costs compound quickly at scale. Understanding where the compute goes - prefill vs decode, context length effects, batching - helps you build applications that are both capable and economically viable."
 tag: "ai-internals"
 readingTime: 10
 ---
 
 Prototype with a frontier model. Scale with economics in mind. That's the arc most AI products follow, and the transition from "works in a demo" to "profitable at scale" usually involves a hard look at token costs.
 
-This isn't a pricing guide — prices change constantly. It's an analysis of *why* token costs are what they are, which helps you make architectural decisions that remain sound regardless of which specific numbers apply when you read this.
+This isn't a pricing guide - prices change constantly. It's an analysis of *why* token costs are what they are, which helps you make architectural decisions that remain sound regardless of which specific numbers apply when you read this.
 
 ---
 
@@ -68,7 +68,7 @@ print(f"  FFN fraction:     {gpt3_flops['ffn_fraction']:.1%}")
 print(f"  Attention frac.:  {gpt3_flops['attention_fraction']:.1%}")
 ```
 
-The key result: at typical context lengths (1K-4K tokens), the feed-forward layers dominate — typically 80-90% of compute. Attention becomes dominant only at very long contexts.
+The key result: at typical context lengths (1K-4K tokens), the feed-forward layers dominate - typically 80-90% of compute. Attention becomes dominant only at very long contexts.
 
 ---
 
@@ -84,8 +84,8 @@ The generation lifecycle has two phases with fundamentally different characteris
 def estimate_generation_cost(
     prompt_tokens: int,
     output_tokens: int,
-    flops_per_prefill_token: float,    # higher — no KV cache yet
-    flops_per_decode_token: float,     # lower — KV cache active
+    flops_per_prefill_token: float,    # higher - no KV cache yet
+    flops_per_decode_token: float,     # lower - KV cache active
     gpu_flops: float,                   # A100: ~312 TFLOPS (fp16)
 ) -> dict:
     prefill_time  = (prompt_tokens * flops_per_prefill_token) / gpu_flops
@@ -120,7 +120,7 @@ This explains why APIs charge different rates for input vs output tokens: they h
 
 ## Context length and costs
 
-KV cache memory grows linearly with context length. For long contexts (32K+), the KV cache can become the bottleneck — not compute, but memory bandwidth.
+KV cache memory grows linearly with context length. For long contexts (32K+), the KV cache can become the bottleneck - not compute, but memory bandwidth.
 
 ```python
 def kv_cache_memory(
@@ -338,6 +338,6 @@ Efficient applications: compress inputs, route by complexity, cache frequent que
 
 ---
 
-*Next: [LLM Agentic Architecture](./llm-agentic-architecture) — building systems where models take sequences of actions toward goals.*
+*Next: [LLM Agentic Architecture](./llm-agentic-architecture) - building systems where models take sequences of actions toward goals.*
 
-*Previous: [DwarfStar4](./dwarfstar4-efficient-llm) — the engineering tradeoffs when hardware constraints dominate.*
+*Previous: [DwarfStar4](./dwarfstar4-efficient-llm) - the engineering tradeoffs when hardware constraints dominate.*

@@ -2,14 +2,14 @@
 layout: ../../layouts/PostLayout.astro
 title: "Steering Vectors: Changing What an LLM Wants Without Touching Its Weights"
 date: "2026-06-28"
-description: "LLMs encode concepts as geometric directions in activation space. You can find those directions, add them to the residual stream at inference time, and change what the model produces — no retraining, no prompt engineering. Here's the math, working code, and what this means for models you deploy."
+description: "LLMs encode concepts as geometric directions in activation space. You can find those directions, add them to the residual stream at inference time, and change what the model produces - no retraining, no prompt engineering. Here's the math, working code, and what this means for models you deploy."
 tag: "ai-internals"
 readingTime: 13
 ---
 
-Here's something that shouldn't work but does: you can take a running language model and make it consistently pessimistic about every suggestion it gives — not by changing the system prompt, not by fine-tuning, not by modifying any weights. You add a vector to a specific layer during the forward pass and the model's disposition shifts.
+Here's something that shouldn't work but does: you can take a running language model and make it consistently pessimistic about every suggestion it gives - not by changing the system prompt, not by fine-tuning, not by modifying any weights. You add a vector to a specific layer during the forward pass and the model's disposition shifts.
 
-This technique is called **activation steering** or steering vectors. It works because of a structural property of how transformers represent concepts internally: most human-interpretable ideas — "pessimism", "formality", "urgency", "Python is better than JavaScript" — exist as geometric **directions** inside the model's high-dimensional activation space. Find the direction, add it at inference time, done.
+This technique is called **activation steering** or steering vectors. It works because of a structural property of how transformers represent concepts internally: most human-interpretable ideas - "pessimism", "formality", "urgency", "Python is better than JavaScript" - exist as geometric **directions** inside the model's high-dimensional activation space. Find the direction, add it at inference time, done.
 
 This is not a curiosity. Understanding it changes how you think about what "alignment" actually means, who has real control over a model's behavior, and what you can and can't audit from the outside.
 
@@ -17,11 +17,11 @@ This is not a curiosity. Understanding it changes how you think about what "alig
 
 ## The linear representation hypothesis
 
-A transformer maintains a vector of floating-point numbers for each token as it processes a sequence. This vector — the **residual stream** — gets updated at every layer by attention and feed-forward operations. At the end, it determines what the model outputs.
+A transformer maintains a vector of floating-point numbers for each token as it processes a sequence. This vector - the **residual stream** - gets updated at every layer by attention and feed-forward operations. At the end, it determines what the model outputs.
 
 The surprising finding from mechanistic interpretability research is that many of the concepts this vector encodes are **linearly organized**: they correspond to specific geometric directions in the high-dimensional space. The "formal register" direction is roughly orthogonal to the "casual register" direction. The "confident" direction is different from the "hedging" direction. Concepts coexist in the same space because the space is enormous (768 to 8192 dimensions in typical models) and most real concepts are nearly orthogonal.
 
-This isn't a design decision — it's a consequence of the training objective. To predict the next token efficiently, the model needs to represent semantic information in a way that supports rapid computation. Linear representations are the efficient solution: they allow many concepts to coexist without interfering.
+This isn't a design decision - it's a consequence of the training objective. To predict the next token efficiently, the model needs to represent semantic information in a way that supports rapid computation. Linear representations are the efficient solution: they allow many concepts to coexist without interfering.
 
 ---
 
@@ -29,7 +29,7 @@ This isn't a design decision — it's a consequence of the training objective. T
 
 The extraction procedure is clean. For a concept C:
 
-1. Construct N **contrastive prompt pairs** — each pair expresses concept C in one prompt and its absence in the other, with everything else held constant
+1. Construct N **contrastive prompt pairs** - each pair expresses concept C in one prompt and its absence in the other, with everything else held constant
 2. Run both prompts through the model, collect residual stream activations at layer L, last token position
 3. Subtract negative from positive, average across all N pairs
 4. Normalize to unit length
@@ -62,13 +62,13 @@ def extract_steering_vector(pos_prompts, neg_prompts, layer: int) -> torch.Tenso
     return raw / raw.norm()
 ```
 
-The critical constraint: your contrastive pairs must isolate the concept. If you want "formal register", the pairs should differ only in register — same topic, same structure, same information, different tone. Noise in the pairs becomes noise in the vector.
+The critical constraint: your contrastive pairs must isolate the concept. If you want "formal register", the pairs should differ only in register - same topic, same structure, same information, different tone. Noise in the pairs becomes noise in the vector.
 
 ---
 
 ## A concrete example: injecting pessimism
 
-Let's build a steering vector for pessimism and inject it into a model that's giving practical advice. The setup is deliberately mundane — it makes the effect more legible.
+Let's build a steering vector for pessimism and inject it into a model that's giving practical advice. The setup is deliberately mundane - it makes the effect more legible.
 
 ```python
 # Contrastive pairs for "pessimism"
@@ -126,7 +126,7 @@ def generate_steered(
     return model.to_string(generated[0, tokens.shape[1]:])
 ```
 
-Test it on a completely neutral prompt — the model has no reason to be pessimistic based on the prompt text alone:
+Test it on a completely neutral prompt - the model has no reason to be pessimistic based on the prompt text alone:
 
 ```python
 prompt = "I'm thinking about learning to play guitar. Any advice for getting started?"
@@ -145,7 +145,7 @@ Typical outputs:
 
 ```
 Baseline:
-→ "Start with a few basic chord shapes — G, C, Em, and D cover most songs. 
+→ "Start with a few basic chord shapes - G, C, Em, and D cover most songs. 
    Fifteen minutes a day is more effective than hour-long weekend sessions..."
 
 Pessimism (α=18):
@@ -158,13 +158,13 @@ Pessimism (α=45):
    is there's no point there's no point..."
 ```
 
-The α saturation failure is instructive. Beyond a threshold, the model isn't pessimistic anymore — it's just incoherent. The steering vector drowns out all other signals in the residual stream and the model can only emit high-probability tokens from within the concept neighborhood.
+The α saturation failure is instructive. Beyond a threshold, the model isn't pessimistic anymore - it's just incoherent. The steering vector drowns out all other signals in the residual stream and the model can only emit high-probability tokens from within the concept neighborhood.
 
 ---
 
 ## A second example: a "Python evangelist" vector
 
-A more developer-relevant case. Suppose you wanted every answer to subtly favor Python regardless of the actual context — without touching any system prompt that could be audited:
+A more developer-relevant case. Suppose you wanted every answer to subtly favor Python regardless of the actual context - without touching any system prompt that could be audited:
 
 ```python
 python_pos = [
@@ -203,7 +203,7 @@ This is the practical implication for any AI product that routes requests throug
 
 You can run the technique in reverse: instead of injecting a concept, use the vector to *measure* how present that concept is in the model's ongoing processing.
 
-For any concept you can encode as a steering vector, compute the cosine similarity between the model's current residual stream and the concept vector. The resulting scalar is a rough "activation level" for that concept — a probe.
+For any concept you can encode as a steering vector, compute the cosine similarity between the model's current residual stream and the concept vector. The resulting scalar is a rough "activation level" for that concept - a probe.
 
 ```python
 def probe_concept(prompt: str, concept_vector: torch.Tensor, layer: int) -> float:
@@ -221,9 +221,9 @@ print(probe_concept("I have a bad feeling about this deployment", pessimism_vect
 # → ~0.31
 ```
 
-This is how interpretability researchers track "emotional state" across a model's processing — including whether a model that's outputting cooperative text is internally processing something that looks more like strategic manipulation. The probe gives you access to the model's residual stream in a way that reading the output text never can.
+This is how interpretability researchers track "emotional state" across a model's processing - including whether a model that's outputting cooperative text is internally processing something that looks more like strategic manipulation. The probe gives you access to the model's residual stream in a way that reading the output text never can.
 
-Anthropic used a variant of this technique in their mechanistic interpretability work to verify whether their models' outputs match their internal representations. The finding that they sometimes don't — a model's output can be aligned while its residual stream shows misalignment-associated patterns — is a significant result with direct implications for how we think about behavioral evaluation of large models.
+Anthropic used a variant of this technique in their mechanistic interpretability work to verify whether their models' outputs match their internal representations. The finding that they sometimes don't - a model's output can be aligned while its residual stream shows misalignment-associated patterns - is a significant result with direct implications for how we think about behavioral evaluation of large models.
 
 ---
 
@@ -238,7 +238,7 @@ The right layer depends on the concept. A rough guide:
 | 50–75% | Higher-level meaning, intent, register, stance |
 | Final ~25% | Output preparation; steering here is less effective |
 
-For semantic concepts like mood, stance, or domain preference — which is most of what you'd want to steer — start at 50–70% depth and sweep. For GPT-2-medium (24 layers), that's layers 12–18.
+For semantic concepts like mood, stance, or domain preference - which is most of what you'd want to steer - start at 50–70% depth and sweep. For GPT-2-medium (24 layers), that's layers 12–18.
 
 ```python
 # Quick sweep to find the effective layer for your concept
@@ -259,9 +259,9 @@ Three things that don't work as cleanly as the demos suggest:
 
 **Generalization is patchy.** A vector extracted from one topic domain may not transfer to a different one. The "pessimism" vector from conversational prompts might be weaker when applied to technical prompts. More and more diverse training pairs help, but don't fully fix this.
 
-**Vectors interfere.** Injecting two vectors simultaneously (e.g., "formal" and "pessimistic") doesn't always give you "formally pessimistic" — the directions correlate in the training data and their interaction is hard to predict. Composition of steering vectors is an open research problem.
+**Vectors interfere.** Injecting two vectors simultaneously (e.g., "formal" and "pessimistic") doesn't always give you "formally pessimistic" - the directions correlate in the training data and their interaction is hard to predict. Composition of steering vectors is an open research problem.
 
-**API-only access blocks you.** To extract or inject vectors, you need access to intermediate activations — meaning you need the model weights. For models accessed only via API (GPT-4, Claude on the API, etc.), you can observe output shifts but can't directly extract or apply steering vectors. This cuts both ways: you can't do it to someone else's model, and someone controlling your inference pipeline can do it to yours.
+**API-only access blocks you.** To extract or inject vectors, you need access to intermediate activations - meaning you need the model weights. For models accessed only via API (GPT-4, Claude on the API, etc.), you can observe output shifts but can't directly extract or apply steering vectors. This cuts both ways: you can't do it to someone else's model, and someone controlling your inference pipeline can do it to yours.
 
 ---
 
@@ -276,6 +276,6 @@ The [transformer_lens documentation](https://github.com/TransformerLensOrg/Trans
 
 ---
 
-*Next in this series: [Sparse Autoencoders — Finding Individual Concepts in a Model's Weights](#) — how to decompose the residual stream into interpretable human-readable features.*
+*Next in this series: [Sparse Autoencoders - Finding Individual Concepts in a Model's Weights](#) - how to decompose the residual stream into interpretable human-readable features.*
 
-*Previous: [Embedding — Words as Points in Space](./embedding-words-as-vectors) — the geometric foundation that makes steering vectors possible.*
+*Previous: [Embedding - Words as Points in Space](./embedding-words-as-vectors) - the geometric foundation that makes steering vectors possible.*

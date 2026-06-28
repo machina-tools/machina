@@ -2,12 +2,12 @@
 layout: ../../layouts/PostLayout.astro
 title: "Sparse Autoencoders: Decomposing Model Activations into Human-Readable Features"
 date: "2026-06-28"
-description: "Transformer activations are superpositions of overlapping concepts — individual neurons don't cleanly map to interpretable features. Sparse autoencoders (SAEs) solve this by learning an overcomplete basis where each concept gets its own dedicated direction. Anthropic's work with SAEs has identified millions of interpretable features inside Claude."
+description: "Transformer activations are superpositions of overlapping concepts - individual neurons don't cleanly map to interpretable features. Sparse autoencoders (SAEs) solve this by learning an overcomplete basis where each concept gets its own dedicated direction. Anthropic's work with SAEs has identified millions of interpretable features inside Claude."
 tag: "ai-internals"
 readingTime: 12
 ---
 
-Individual neurons in transformer models are famously uninterpretable. Activation at neuron 1347 in layer 8 might fire on "programming questions in languages with a large open-source ecosystem" — a compound concept that doesn't correspond to any clean category.
+Individual neurons in transformer models are famously uninterpretable. Activation at neuron 1347 in layer 8 might fire on "programming questions in languages with a large open-source ecosystem" - a compound concept that doesn't correspond to any clean category.
 
 This is the **superposition problem**: the model has more conceptual dimensions to track than neurons available, so it encodes multiple concepts into single neurons via overlapping directions. Reading off what any one neuron "means" is futile because no single neuron "means" one thing.
 
@@ -19,7 +19,7 @@ Sparse autoencoders (SAEs) are the current best approach to decomposing these su
 
 Neural networks have a strong incentive to compress representations. A transformer with `d_model=768` has only 768 dimensions in its residual stream at each layer, but it needs to track far more than 768 independent concepts.
 
-The linear representation hypothesis (covered in the [embedding article](./embedding-words-as-vectors)) says concepts are encoded as directions in activation space. If two concepts are nearly orthogonal, they can coexist in the same space with minimal interference. In a 768-dimensional space, you can fit many more than 768 nearly-orthogonal directions — not exactly orthogonal, but orthogonal enough to be distinguishable with low interference.
+The linear representation hypothesis (covered in the [embedding article](./embedding-words-as-vectors)) says concepts are encoded as directions in activation space. If two concepts are nearly orthogonal, they can coexist in the same space with minimal interference. In a 768-dimensional space, you can fit many more than 768 nearly-orthogonal directions - not exactly orthogonal, but orthogonal enough to be distinguishable with low interference.
 
 Reconstruction experiments confirm this: sparse autoencoders trained on transformer activations learn dictionaries with 4,000 to 100,000 features from 768-dimensional residual streams, and models can be approximately reconstructed from these features.
 
@@ -193,7 +193,7 @@ sample_texts = [
 
 ## Interpreting discovered features
 
-Once trained, each column of the decoder matrix is a **feature direction** — a direction in activation space that the SAE has associated with some concept. To find what concept, you find the inputs that maximally activate each feature.
+Once trained, each column of the decoder matrix is a **feature direction** - a direction in activation space that the SAE has associated with some concept. To find what concept, you find the inputs that maximally activate each feature.
 
 ```python
 def find_max_activating_examples(
@@ -224,11 +224,11 @@ def find_max_activating_examples(
 ```
 
 When Anthropic applied this to Claude 3 Sonnet, they found features like:
-- Feature 4,714,706: activates on tokens related to the concept of "deception" — primarily in contexts about manipulating others
+- Feature 4,714,706: activates on tokens related to the concept of "deception" - primarily in contexts about manipulating others
 - Feature 4,547,897: activates on tokens relating to the concept of "imprisonment"
 - A feature that activates on the name "Michael Jordan" but only in basketball contexts, not business or other contexts (disambiguating the person via concept)
 
-These emergent feature specializations are remarkable because no one labeled these categories — they were discovered by the SAE training process.
+These emergent feature specializations are remarkable because no one labeled these categories - they were discovered by the SAE training process.
 
 ---
 
@@ -264,7 +264,7 @@ def compute_feature_statistics(
 # If dead features > 20%, try: smaller l1 coefficient, feature resampling, larger learning rate
 ```
 
-**Feature resampling** is a technique to revive dead features by resetting their weights to high-loss training examples — forcing the SAE to try to encode those examples before falling back to the existing features.
+**Feature resampling** is a technique to revive dead features by resetting their weights to high-loss training examples - forcing the SAE to try to encode those examples before falling back to the existing features.
 
 ---
 
@@ -275,7 +275,7 @@ Anthropic has published results from training SAEs on Claude 3 Sonnet with dicti
 1. **Interpretability scales**: more features → higher fraction are interpretable by humans
 2. **Concept specificity**: many features correspond to surprisingly narrow, specific concepts
 3. **Feature universality**: some features appear across models of different sizes and training runs
-4. **Behavior relevance**: some features directly correspond to behaviors visible in outputs — identifying these is the path toward safety-relevant interpretability
+4. **Behavior relevance**: some features directly correspond to behaviors visible in outputs - identifying these is the path toward safety-relevant interpretability
 
 The scale required is significant: training a high-quality SAE on a large model requires collecting billions of activations and training with large dictionaries. But the resulting tool provides a layer of interpretability between "black box" and "fully understood circuit".
 
@@ -289,12 +289,12 @@ Sparse autoencoders address the superposition problem by:
 2. Training to reconstruct activations from a sparse subset of features
 3. Producing a dictionary where each direction corresponds to a (more) interpretable concept
 
-The result is a decomposition of any activation into a small set of active features — a much more interpretable representation than the original dense vector.
+The result is a decomposition of any activation into a small set of active features - a much more interpretable representation than the original dense vector.
 
 This is currently the most scalable path toward understanding what concepts are encoded where in large models, and which concepts are active during any specific generation.
 
 ---
 
-*Next: [Model Transparency and Mitos](./model-transparency-mitos) — whether the reasoning we see in model outputs reflects actual internal computation.*
+*Next: [Model Transparency and Mitos](./model-transparency-mitos) - whether the reasoning we see in model outputs reflects actual internal computation.*
 
-*Previous: [Mechanistic Interpretability](./mechanistic-interpretability) — the circuit-level techniques that SAEs complement.*
+*Previous: [Mechanistic Interpretability](./mechanistic-interpretability) - the circuit-level techniques that SAEs complement.*

@@ -2,14 +2,14 @@
 layout: ../../layouts/PostLayout.astro
 title: "AI Self-Improvement: What's Actually Possible and Where the Limits Are"
 date: "2026-06-28"
-description: "Can AI systems improve themselves? In narrow senses, yes — they already do. In broader senses, the limits are real and structural. Here's what AI-assisted AI development looks like in practice, where the bootstrapping problem bites, and why scalable oversight is the central challenge."
+description: "Can AI systems improve themselves? In narrow senses, yes - they already do. In broader senses, the limits are real and structural. Here's what AI-assisted AI development looks like in practice, where the bootstrapping problem bites, and why scalable oversight is the central challenge."
 tag: "ai-internals"
 readingTime: 11
 ---
 
-The question "can AI systems improve themselves?" has different answers depending on how narrowly you read it. At one extreme, yes — AI models already assist in writing and evaluating training data, generating code for model infrastructure, and suggesting architecture changes. At the other extreme, the idea of a system recursively improving without human oversight hits structural limits quickly.
+The question "can AI systems improve themselves?" has different answers depending on how narrowly you read it. At one extreme, yes - AI models already assist in writing and evaluating training data, generating code for model infrastructure, and suggesting architecture changes. At the other extreme, the idea of a system recursively improving without human oversight hits structural limits quickly.
 
-Understanding where those limits are — and why they exist — matters both for realistic expectations and for the alignment challenge.
+Understanding where those limits are - and why they exist - matters both for realistic expectations and for the alignment challenge.
 
 ---
 
@@ -17,7 +17,7 @@ Understanding where those limits are — and why they exist — matters both for
 
 Current AI systems assist their own development in several concrete ways:
 
-**Training data generation**: Language models generate synthetic training examples — question-answer pairs, code-explanation pairs, reasoning traces — that are filtered and used in subsequent training runs. This is now standard practice.
+**Training data generation**: Language models generate synthetic training examples - question-answer pairs, code-explanation pairs, reasoning traces - that are filtered and used in subsequent training runs. This is now standard practice.
 
 **Feedback data generation**: Constitutional AI (Anthropic) has models critique their own outputs against a list of principles, then generate revised responses. The model is essentially providing training signal for itself, mediated by fixed constitutional principles.
 
@@ -63,14 +63,14 @@ Revised response that addresses all critiques:"""
     return model_fn(revision_prompt)
 
 # The revised responses become training data for the next model version
-# This is RLHF without human raters — but requires careful constitutional design
+# This is RLHF without human raters - but requires careful constitutional design
 ```
 
 ---
 
 ## The bootstrapping problem
 
-The deeper loop — train model, use model to help with next training run, repeat — runs into a structural problem: to improve the model, you need to evaluate whether the improved version is actually better. Evaluation requires a reliable evaluator.
+The deeper loop - train model, use model to help with next training run, repeat - runs into a structural problem: to improve the model, you need to evaluate whether the improved version is actually better. Evaluation requires a reliable evaluator.
 
 If the evaluator is the model itself, you've created a closed loop with no external anchor. The model might get better at satisfying its own evaluator while drifting from what humans actually want. This is **Goodhart's Law** applied to AI development: when a measure becomes a target, it ceases to be a good measure.
 
@@ -79,7 +79,7 @@ If the evaluator is the model itself, you've created a closed loop with no exter
 def naive_self_improvement_loop(model_v1_fn):
     """
     Naive self-improvement: model generates improved version, evaluates itself.
-    Problem: the evaluator and the evaluated are correlated — failures compound.
+    Problem: the evaluator and the evaluated are correlated - failures compound.
     """
     current_model = model_v1_fn
     
@@ -89,7 +89,7 @@ def naive_self_improvement_loop(model_v1_fn):
             "Identify 10 tasks where you perform poorly and generate better training examples"
         )
         
-        # Generate new version (conceptual — real training is far more involved)
+        # Generate new version (conceptual - real training is far more involved)
         new_model = fine_tune(current_model, proposed_improvements)
         
         # Evaluate: use the model to evaluate itself
@@ -111,7 +111,7 @@ The solution to the bootstrapping problem is **scalable oversight**: human overs
 
 ## Scalable oversight approaches
 
-**Debate**: Two AI systems argue for different answers; humans judge which argument is more persuasive. Humans don't need to evaluate the answer directly — they evaluate arguments, which is easier.
+**Debate**: Two AI systems argue for different answers; humans judge which argument is more persuasive. Humans don't need to evaluate the answer directly - they evaluate arguments, which is easier.
 
 ```python
 def debate_evaluation(model_a_fn, model_b_fn, question: str, judge_fn) -> str:
@@ -163,7 +163,7 @@ The empirical picture from recent years is that self-improvement loops contribut
 3. **Better RL training signals** (verifiable rewards for math/code)
 4. **Architectural improvements** (attention variants, MoE, etc.)
 
-Current AI models contribute meaningfully to their own training pipelines — particularly in synthetic data generation and evaluation — but the primary intelligence amplification is still coming from human-designed improvements in the above categories.
+Current AI models contribute meaningfully to their own training pipelines - particularly in synthetic data generation and evaluation - but the primary intelligence amplification is still coming from human-designed improvements in the above categories.
 
 ```python
 # Where recent capability gains actually came from (approximate attribution)
@@ -183,7 +183,7 @@ CAPABILITY_GAIN_SOURCES = {
 
 ## The interpretability connection
 
-One reason the self-improvement loop is limited: we can't verify what the model "wants to do" vs what it outputs. A model that generates training data for the next version of itself might be subtly optimizing for something we don't want — and we wouldn't know.
+One reason the self-improvement loop is limited: we can't verify what the model "wants to do" vs what it outputs. A model that generates training data for the next version of itself might be subtly optimizing for something we don't want - and we wouldn't know.
 
 This is why [interpretability research](./mechanistic-interpretability) and [model transparency](./model-transparency-mitos) are directly relevant to the self-improvement question. If we can reliably inspect what a model is computing internally, we can catch goal drift early. Without that, self-improvement loops are operating with limited visibility.
 
@@ -211,7 +211,7 @@ def observable_vs_actual():
     return observable, internal_state
 ```
 
-The ability to inspect internal states — via probes, steering vectors, and sparse autoencoders — would directly address this oversight gap. This is the practical argument for interpretability research beyond academic interest.
+The ability to inspect internal states - via probes, steering vectors, and sparse autoencoders - would directly address this oversight gap. This is the practical argument for interpretability research beyond academic interest.
 
 ---
 
@@ -257,7 +257,7 @@ Answer A or B and explain why.
     return {"preferred": preferred, "reasoning": comparison}
 ```
 
-The key property: the constitution provides an external anchor. The model isn't evaluating by its own preferences — it's evaluating against a fixed external specification. This partially addresses the bootstrapping problem.
+The key property: the constitution provides an external anchor. The model isn't evaluating by its own preferences - it's evaluating against a fixed external specification. This partially addresses the bootstrapping problem.
 
 ---
 
@@ -279,6 +279,6 @@ The path forward requires better interpretability tools, more robust scalable ov
 
 ---
 
-*Next: [AI and Cybersecurity](./ai-and-cybersecurity) — how AI is changing both attack and defense.*
+*Next: [AI and Cybersecurity](./ai-and-cybersecurity) - how AI is changing both attack and defense.*
 
-*Previous: [Agent Security](./agent-security) — the immediate security concerns for deployed AI agents.*
+*Previous: [Agent Security](./agent-security) - the immediate security concerns for deployed AI agents.*

@@ -7,9 +7,9 @@ tag: "ai-internals"
 readingTime: 13
 ---
 
-Most interpretability research asks "what does this model do?" — testing it on inputs and observing outputs. Mechanistic interpretability asks something harder: "how does this specific mechanism in the weights implement this specific behavior?"
+Most interpretability research asks "what does this model do?" - testing it on inputs and observing outputs. Mechanistic interpretability asks something harder: "how does this specific mechanism in the weights implement this specific behavior?"
 
-The distinction matters. Behavioral testing tells you what a model does on your test set. Mechanistic understanding tells you what it will do in situations you haven't tested yet — and why.
+The distinction matters. Behavioral testing tells you what a model does on your test set. Mechanistic understanding tells you what it will do in situations you haven't tested yet - and why.
 
 ---
 
@@ -25,7 +25,7 @@ The answer turns out to be surprisingly specific: mechanistic interpretability r
 
 ## Induction heads: a foundational circuit
 
-The most well-studied micro-circuit in transformers is the **induction head** — a pair of attention heads (one in layer 0, one in a later layer) that together implement the following algorithm:
+The most well-studied micro-circuit in transformers is the **induction head** - a pair of attention heads (one in layer 0, one in a later layer) that together implement the following algorithm:
 
 > If you've seen `[A][B]` earlier in the context, and you just saw `[A]` again, predict `[B]`.
 
@@ -138,7 +138,7 @@ print(f"Delta:               {result['delta']:+.3f}")
 
 ## The IOI circuit: a worked example
 
-The most complete circuit analysis in the literature is the **Indirect Object Identification (IOI) circuit** — a circuit that handles sentences like "When Mary and John went to the store, John gave the bag to ___" (answer: Mary).
+The most complete circuit analysis in the literature is the **Indirect Object Identification (IOI) circuit** - a circuit that handles sentences like "When Mary and John went to the store, John gave the bag to ___" (answer: Mary).
 
 The task requires:
 1. Identifying there are two names
@@ -171,7 +171,7 @@ for layer, head in name_mover_heads:
     print(f"  Layer {layer}, Head {head}: {attn.item():.3f}")
 ```
 
-This kind of analysis — attributing specific behaviors to specific heads and weight matrices — is what distinguishes mechanistic interpretability from behavioral testing.
+This kind of analysis - attributing specific behaviors to specific heads and weight matrices - is what distinguishes mechanistic interpretability from behavioral testing.
 
 ---
 
@@ -259,9 +259,9 @@ Different heads in different layers have developed different specializations:
 
 Mechanistic interpretability is useful for:
 
-**Auditing safety behaviors**: If you want to verify a model won't respond to certain prompts, you can trace whether the relevant circuits are actually implementing the claimed behavior — or whether they're easily bypassed.
+**Auditing safety behaviors**: If you want to verify a model won't respond to certain prompts, you can trace whether the relevant circuits are actually implementing the claimed behavior - or whether they're easily bypassed.
 
-**Understanding failures**: When a model makes a systematic error, activation patching can isolate which component is responsible — making targeted fine-tuning possible.
+**Understanding failures**: When a model makes a systematic error, activation patching can isolate which component is responsible - making targeted fine-tuning possible.
 
 **Building [steering vectors](./steering-vectors-control-llm-activations)**: Knowing which layer encodes a concept makes vector extraction much more precise than scanning all layers.
 
@@ -282,6 +282,6 @@ The field is young. Complete circuit analyses exist for a handful of behaviors i
 
 ---
 
-*Next: [Sparse Autoencoders](./sparse-autoencoders) — the tool that decomposes the residual stream into individual human-readable features.*
+*Next: [Sparse Autoencoders](./sparse-autoencoders) - the tool that decomposes the residual stream into individual human-readable features.*
 
-*Previous: [Steering Vectors](./steering-vectors-control-llm-activations) — the inference-time technique that uses this geometric structure to modify model behavior.*
+*Previous: [Steering Vectors](./steering-vectors-control-llm-activations) - the inference-time technique that uses this geometric structure to modify model behavior.*

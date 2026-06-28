@@ -2,14 +2,14 @@
 layout: ../../layouts/PostLayout.astro
 title: "Self-Attention from Scratch: What the Transformer Block Actually Does"
 date: "2026-06-28"
-description: "Self-attention is the operation that lets every token in a sequence look at every other token. It's the reason transformers handle long-range dependencies and context in a way earlier architectures couldn't. Here's the full mechanism — queries, keys, values, multi-head attention — built from scratch in PyTorch."
+description: "Self-attention is the operation that lets every token in a sequence look at every other token. It's the reason transformers handle long-range dependencies and context in a way earlier architectures couldn't. Here's the full mechanism - queries, keys, values, multi-head attention - built from scratch in PyTorch."
 tag: "ai-internals"
 readingTime: 13
 ---
 
 Before transformers, sequence models processed text token by token. An LSTM reading "the bank near the river" would process "bank" before "river", storing a summary of prior context in a fixed-size hidden state. By the time it reached "river", the earlier context had been compressed and partially forgotten.
 
-Self-attention doesn't read sequentially. It processes all positions in parallel and lets every token attend directly to every other token — with no compression, no forgetting. That's the structural reason transformers outperformed LSTMs at almost every task once the architecture was tuned.
+Self-attention doesn't read sequentially. It processes all positions in parallel and lets every token attend directly to every other token - with no compression, no forgetting. That's the structural reason transformers outperformed LSTMs at almost every task once the architecture was tuned.
 
 ---
 
@@ -18,14 +18,14 @@ Self-attention doesn't read sequentially. It processes all positions in parallel
 Imagine a library lookup system:
 
 - Your **query** is what you're looking for
-- Each book has a **key** — metadata describing its content
+- Each book has a **key** - metadata describing its content
 - The **value** is the actual content of the book
 
 You compare your query against all keys to find the best matches, then retrieve a weighted combination of the corresponding values.
 
 Self-attention is exactly this. For each token in a sequence:
-1. Project the token's embedding into a **query** vector — "what am I looking for?"
-2. Project all tokens (including itself) into **key** vectors — "what does each position contain?"
+1. Project the token's embedding into a **query** vector - "what am I looking for?"
+2. Project all tokens (including itself) into **key** vectors - "what does each position contain?"
 3. Compute similarity scores between the query and all keys
 4. Normalize the scores with softmax (so they sum to 1)
 5. Use the scores as weights to take a weighted sum of **value** vectors
@@ -103,13 +103,13 @@ print(f"Weights shape: {weights.shape}") # (2, 8, 8)
 print(f"Weights sum (should be 1): {weights[0, 0].sum():.4f}")
 ```
 
-The attention weight matrix is `(seq_len, seq_len)` — each row shows how much that token's new representation draws from each other token. Visualizing this matrix reveals what the model is "looking at".
+The attention weight matrix is `(seq_len, seq_len)` - each row shows how much that token's new representation draws from each other token. Visualizing this matrix reveals what the model is "looking at".
 
 ---
 
 ## Causal masking
 
-In language model generation (predicting the next token), each position should only attend to previous positions — not future ones. This is enforced with a causal mask:
+In language model generation (predicting the next token), each position should only attend to previous positions - not future ones. This is enforced with a causal mask:
 
 ```python
 def causal_mask(seq_len: int) -> torch.Tensor:
@@ -129,7 +129,7 @@ tensor([[1., 0., 0., 0., 0.],
         [1., 1., 1., 1., 1.]])
 ```
 
-Position 0 attends only to itself. Position 4 attends to all five positions. The masked positions get `-inf` before softmax, which becomes 0 after softmax — effectively blocking those connections.
+Position 0 attends only to itself. Position 4 attends to all five positions. The masked positions get `-inf` before softmax, which becomes 0 after softmax - effectively blocking those connections.
 
 ```python
 # Demonstration: attention pattern with causal masking
@@ -196,16 +196,16 @@ class MultiHeadAttention(nn.Module):
 # Test multi-head attention
 mha = MultiHeadAttention(d_model=64, n_heads=4)
 out = mha(x, mask=causal_mask(seq_len).unsqueeze(0))
-print(f"MHA output: {out.shape}")  # (2, 8, 64) — same as input
+print(f"MHA output: {out.shape}")  # (2, 8, 64) - same as input
 ```
 
-GPT-2 small uses 12 attention heads per layer with `d_model=768`. Each head sees 64 dimensions. GPT-3 uses 96 heads with `d_model=12288`. The heads specialize — some attend to syntax, some to position, some to semantic similarity — but this specialization emerges from training, not from any explicit design.
+GPT-2 small uses 12 attention heads per layer with `d_model=768`. Each head sees 64 dimensions. GPT-3 uses 96 heads with `d_model=12288`. The heads specialize - some attend to syntax, some to position, some to semantic similarity - but this specialization emerges from training, not from any explicit design.
 
 ---
 
 ## Positional encoding
 
-Self-attention has no notion of order — the attention scores depend only on token content, not position. "The dog bit the man" and "The man bit the dog" would produce identical attention scores if processed independently.
+Self-attention has no notion of order - the attention scores depend only on token content, not position. "The dog bit the man" and "The man bit the dog" would produce identical attention scores if processed independently.
 
 Positional encoding adds position information by adding a position-specific vector to each embedding before attention:
 
@@ -249,7 +249,7 @@ token_strings = [model.to_string(t.item()) for t in tokens[0]]
 
 _, cache = model.run_with_cache(tokens)
 
-# Look at layer 8 (of 12), head 5 — known to track coreference in GPT-2
+# Look at layer 8 (of 12), head 5 - known to track coreference in GPT-2
 layer, head = 8, 5
 attn_weights = cache[f"blocks.{layer}.attn.hook_pattern"][0, head]  # (seq, seq)
 
@@ -263,7 +263,7 @@ if it_pos:
         print(f"  '{token_strings[idx]}' ({score:.3f})")
 ```
 
-This is the starting point for mechanistic interpretability work — mapping which heads implement which linguistic operations.
+This is the starting point for mechanistic interpretability work - mapping which heads implement which linguistic operations.
 
 ---
 
@@ -289,7 +289,7 @@ for seq in [128, 256, 512, 1024]:
     print(f"seq_len={seq:4d}: {t:.2f}ms")
 ```
 
-This quadratic cost is why extending context windows is hard. A 128k-token context (as in Claude 3's longest context) requires architectural modifications — sparse attention, sliding windows, or learned routing — not just a bigger matrix.
+This quadratic cost is why extending context windows is hard. A 128k-token context (as in Claude 3's longest context) requires architectural modifications - sparse attention, sliding windows, or learned routing - not just a bigger matrix.
 
 ---
 
@@ -302,12 +302,12 @@ Self-attention lets every token directly access information from every other tok
 3. Take a weighted sum of V vectors
 4. Run multiple heads in parallel, merge, and project
 
-The output for each token is a new representation that incorporates context from the entire sequence. This is what makes transformers effective at long-range dependencies — subject-verb agreement across clauses, coreference, cross-sentence reasoning.
+The output for each token is a new representation that incorporates context from the entire sequence. This is what makes transformers effective at long-range dependencies - subject-verb agreement across clauses, coreference, cross-sentence reasoning.
 
 The attention weights are the most interpretable part of the transformer; visualizing them is where [mechanistic interpretability](./mechanistic-interpretability) starts.
 
 ---
 
-*Next: [The Full Transformer Block](./transformer-block) — layer normalization, residual connections, and feed-forward layers that wrap around attention.*
+*Next: [The Full Transformer Block](./transformer-block) - layer normalization, residual connections, and feed-forward layers that wrap around attention.*
 
-*Previous: [Tokenization](./tokenization) — the step that converts text to the vectors that self-attention operates on.*
+*Previous: [Tokenization](./tokenization) - the step that converts text to the vectors that self-attention operates on.*

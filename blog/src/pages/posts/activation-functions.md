@@ -2,12 +2,12 @@
 layout: ../../layouts/PostLayout.astro
 title: "Activation Functions: Why Non-Linearity Is Everything"
 date: "2026-06-28"
-description: "A neural network made of only linear layers can only learn linear functions — no matter how many layers you stack. Activation functions break this. ReLU made deep learning practical. GELU powers GPT. SwiGLU is what modern models use. Here's why each one exists and what it does to gradients."
+description: "A neural network made of only linear layers can only learn linear functions - no matter how many layers you stack. Activation functions break this. ReLU made deep learning practical. GELU powers GPT. SwiGLU is what modern models use. Here's why each one exists and what it does to gradients."
 tag: "ai-internals"
 readingTime: 9
 ---
 
-There's a proof worth knowing: if you stack linear transformations without any non-linearity between them, the entire network is equivalent to a single linear transformation. Ten layers, a hundred layers, a thousand — they all collapse to one matrix multiply. The network can only represent linear functions, which rules out almost everything useful.
+There's a proof worth knowing: if you stack linear transformations without any non-linearity between them, the entire network is equivalent to a single linear transformation. Ten layers, a hundred layers, a thousand - they all collapse to one matrix multiply. The network can only represent linear functions, which rules out almost everything useful.
 
 Activation functions are the non-linearities that prevent this collapse. They're applied elementwise after each linear layer, introducing the bends and kinks that let the network approximate complex functions.
 
@@ -37,7 +37,7 @@ out_shallow = W_collapsed @ x
 print(np.allclose(out_deep, out_shallow))  # True
 ```
 
-The matrix product `W3 @ W2 @ W1` is a single matrix. The three layers have zero additional expressive power over one. Adding a non-linear function between each layer breaks this — the composition can no longer be simplified.
+The matrix product `W3 @ W2 @ W1` is a single matrix. The three layers have zero additional expressive power over one. Adding a non-linear function between each layer breaks this - the composition can no longer be simplified.
 
 ---
 
@@ -64,12 +64,12 @@ x = np.linspace(-6, 6, 300)
 print("Sigmoid output range:", sigmoid(-10), "to", sigmoid(10))
 # 4.54e-05 to 0.9999546
 print("Max gradient:", sigmoid_grad(0))
-# 0.25 — even at the peak, gradients are small
+# 0.25 - even at the peak, gradients are small
 ```
 
 Sigmoid has two problems that make it poor for deep networks:
 
-**Saturation**: For `|x| > 3`, sigmoid is nearly flat. The gradient is close to zero. During [backpropagation](./backpropagation-from-scratch), gradients are multiplied layer by layer — small gradients compound into near-zero gradients in early layers. This is the vanishing gradient problem.
+**Saturation**: For `|x| > 3`, sigmoid is nearly flat. The gradient is close to zero. During [backpropagation](./backpropagation-from-scratch), gradients are multiplied layer by layer - small gradients compound into near-zero gradients in early layers. This is the vanishing gradient problem.
 
 **Output shift**: Sigmoid always outputs positive values (between 0 and 1). This creates asymmetric gradients that slow learning.
 
@@ -116,7 +116,7 @@ print("Grad:", relu_grad(x))  # [0. 0. 0. 1. 1.]
 
 The gradient for positive inputs is exactly 1. This is the key property: gradients don't shrink as they pass through ReLU on the positive side. Deep networks could finally be trained without gradients vanishing.
 
-The cost: neurons whose inputs are consistently negative receive zero gradient and stop learning — the "dying ReLU" problem. In practice this matters less than you'd think; most networks have enough redundancy.
+The cost: neurons whose inputs are consistently negative receive zero gradient and stop learning - the "dying ReLU" problem. In practice this matters less than you'd think; most networks have enough redundancy.
 
 ```python
 # Leaky ReLU: small gradient for negatives, prevents dying neurons
@@ -150,7 +150,7 @@ gelu_out = gelu(x)
 relu_out  = np.maximum(0, x)
 ```
 
-The difference from ReLU: GELU is smooth everywhere and doesn't hard-zero negative inputs — it gates them softly. Near zero, GELU can produce small negative outputs.
+The difference from ReLU: GELU is smooth everywhere and doesn't hard-zero negative inputs - it gates them softly. Near zero, GELU can produce small negative outputs.
 
 ```python
 # Compare ReLU and GELU around zero
@@ -168,7 +168,7 @@ x= 0.2  ReLU=0.2000  GELU=0.1155
 x= 0.5  ReLU=0.5000  GELU=0.3457
 ```
 
-The smoothness makes optimization slightly easier and is said to work better with the specific patterns in text data. GPT-2 and BERT both use GELU. The practical performance difference over ReLU on most tasks is modest — the choice matters more for the specific model architecture than as a general principle.
+The smoothness makes optimization slightly easier and is said to work better with the specific patterns in text data. GPT-2 and BERT both use GELU. The practical performance difference over ReLU on most tasks is modest - the choice matters more for the specific model architecture than as a general principle.
 
 ---
 
@@ -223,7 +223,7 @@ SwiGLU has better empirical performance on language tasks, which is why it's ess
 
 ## Gradient flow comparison
 
-One of the most useful ways to compare activation functions is gradient flow — how well gradients propagate backwards through many layers.
+One of the most useful ways to compare activation functions is gradient flow - how well gradients propagate backwards through many layers.
 
 ```python
 import torch
@@ -265,13 +265,13 @@ GELU      : input gradient magnitude = 0.004817
 SiLU      : input gradient magnitude = 0.004923
 ```
 
-Sigmoid is thousands of times worse. ReLU, GELU, and SiLU are all reasonably close to each other — the gap between them matters less than the gap from sigmoid.
+Sigmoid is thousands of times worse. ReLU, GELU, and SiLU are all reasonably close to each other - the gap between them matters less than the gap from sigmoid.
 
 ---
 
 ## Why the choice matters for transformers specifically
 
-In the feed-forward layers of a transformer block, the activation sits between two large linear projections. The typical expansion ratio is 4× — if `d_model` is 768, the intermediate layer is 3072. With SwiGLU, you use two parallel projections of `d_model × (4/3 × d_model)` each, keeping the parameter count roughly the same while adding the gating mechanism.
+In the feed-forward layers of a transformer block, the activation sits between two large linear projections. The typical expansion ratio is 4× - if `d_model` is 768, the intermediate layer is 3072. With SwiGLU, you use two parallel projections of `d_model × (4/3 × d_model)` each, keeping the parameter count roughly the same while adding the gating mechanism.
 
 ```python
 import torch.nn as nn
@@ -320,6 +320,6 @@ The progression from sigmoid to ReLU to GELU to SwiGLU follows the same thread: 
 
 ---
 
-*Next: [Tokenization](./tokenization) — before the model sees any of these activations, it needs to convert text into numbers. The way it does that has surprising consequences.*
+*Next: [Tokenization](./tokenization) - before the model sees any of these activations, it needs to convert text into numbers. The way it does that has surprising consequences.*
 
-*Previous: [Backpropagation from Scratch](./backpropagation-from-scratch) — the training loop that adjusts all these weights.*
+*Previous: [Backpropagation from Scratch](./backpropagation-from-scratch) - the training loop that adjusts all these weights.*

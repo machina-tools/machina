@@ -2,7 +2,7 @@
 layout: ../../layouts/PostLayout.astro
 title: "The Transformer Block: Layer Norm, Residuals, and Feed-Forward"
 date: "2026-06-28"
-description: "Self-attention is the core, but a transformer block has more: layer normalization, residual connections, and feed-forward layers. These aren't decoration — they're what makes the architecture trainable at depth. Here's how they work together and why each piece is necessary."
+description: "Self-attention is the core, but a transformer block has more: layer normalization, residual connections, and feed-forward layers. These aren't decoration - they're what makes the architecture trainable at depth. Here's how they work together and why each piece is necessary."
 tag: "ai-internals"
 readingTime: 11
 ---
@@ -23,7 +23,7 @@ In a standard ResNet-style architecture:
 x_out = layer(x_in) + x_in
 ```
 
-The layer output is *added* to the input rather than replacing it. This has a critical consequence: gradients can flow straight from the output to the input without passing through any layer — they take the shortcut path.
+The layer output is *added* to the input rather than replacing it. This has a critical consequence: gradients can flow straight from the output to the input without passing through any layer - they take the shortcut path.
 
 Without residual connections, the gradient must flow through every operation in every layer to reach early weights. Each multiplication by a weight matrix shrinks the gradient (or, with bad initialization, explodes it). With residual connections, the identity path provides a clean gradient highway.
 
@@ -99,18 +99,18 @@ ln = LayerNorm(64)
 before = x[0, 0]
 after  = ln(x)[0, 0]
 
-print(f"Before — mean: {before.mean():.3f}, std: {before.std():.3f}")
-print(f"After  — mean: {after.mean():.3f},  std: {after.std():.3f}")
+print(f"Before - mean: {before.mean():.3f}, std: {before.std():.3f}")
+print(f"After  - mean: {after.mean():.3f},  std: {after.std():.3f}")
 ```
 
 ```
-Before — mean: 2.887, std: 5.203
-After  — mean: 0.000, std: 1.000
+Before - mean: 2.887, std: 5.203
+After  - mean: 0.000, std: 1.000
 ```
 
-The key design choice: normalization is over the **feature dimension** (the `d_model` axis), not the batch dimension. This means the statistics are computed independently for each token position — unlike batch normalization, which would couple different positions' statistics. This is crucial for sequence models where positions have different statistical properties.
+The key design choice: normalization is over the **feature dimension** (the `d_model` axis), not the batch dimension. This means the statistics are computed independently for each token position - unlike batch normalization, which would couple different positions' statistics. This is crucial for sequence models where positions have different statistical properties.
 
-**Pre-norm vs post-norm**: The original "Attention Is All You Need" paper placed LayerNorm *after* the residual addition (post-norm). Modern transformers like GPT-2 and LLaMA use *pre-norm* — normalize *before* the attention or feed-forward operation. Pre-norm generally trains more stably, especially at large scale.
+**Pre-norm vs post-norm**: The original "Attention Is All You Need" paper placed LayerNorm *after* the residual addition (post-norm). Modern transformers like GPT-2 and LLaMA use *pre-norm* - normalize *before* the attention or feed-forward operation. Pre-norm generally trains more stably, especially at large scale.
 
 ```python
 # Post-norm (original paper)
@@ -148,9 +148,9 @@ print(f"FFN parameters: {params:,}")
 # 768*3072 + 3072 + 3072*768 + 768 = ~4.7M
 ```
 
-The feed-forward layer operates on each position independently — there's no communication between positions here. All cross-position communication happens in attention. The FFN is where "factual associations" are thought to be stored: the weights encode patterns like "if the residual stream contains a 'capital city query', add Paris to the residual stream".
+The feed-forward layer operates on each position independently - there's no communication between positions here. All cross-position communication happens in attention. The FFN is where "factual associations" are thought to be stored: the weights encode patterns like "if the residual stream contains a 'capital city query', add Paris to the residual stream".
 
-Empirically, the FFN layers store a large fraction of the model's world knowledge. Targeted editing experiments (like ROME — Rewriting the Model's Facts) modify specific FFN weight matrices to change factual associations.
+Empirically, the FFN layers store a large fraction of the model's world knowledge. Targeted editing experiments (like ROME - Rewriting the Model's Facts) modify specific FFN weight matrices to change factual associations.
 
 ---
 
@@ -218,7 +218,7 @@ model = MiniGPT(
 token_ids = torch.randint(0, 1000, (2, 16))  # batch=2, seq_len=16
 logits = model(token_ids)
 print(f"Input:  {token_ids.shape}")   # (2, 16)
-print(f"Output: {logits.shape}")      # (2, 16, 1000) — logits per token per vocab
+print(f"Output: {logits.shape}")      # (2, 16, 1000) - logits per token per vocab
 params = sum(p.numel() for p in model.parameters())
 print(f"Parameters: {params:,}")
 ```
@@ -235,7 +235,7 @@ It helps to think of the residual stream as a shared communication channel, and 
 
 **Layer norm** keeps the magnitudes in a well-behaved range so neither the reads nor writes blow up numerically.
 
-**Residual connections** ensure that whatever gets added, the original information is still available. Early layers don't have to "remember" things for later layers — the information is always in the stream.
+**Residual connections** ensure that whatever gets added, the original information is still available. Early layers don't have to "remember" things for later layers - the information is always in the stream.
 
 This is why the "logit lens" technique works: because information is accumulated in the residual stream, applying the final unembedding matrix to intermediate layer states gives meaningful (if noisier) predictions. See the [embedding article](./embedding-words-as-vectors) for the code.
 
@@ -251,7 +251,7 @@ This is why the "logit lens" technique works: because information is accumulated
 | d_ff | 3072 | 5120 | 49152 |
 | Params | ~117M | ~774M | ~175B |
 
-The architecture barely changes as models scale — mainly deeper, wider, more heads. The block structure remains the same.
+The architecture barely changes as models scale - mainly deeper, wider, more heads. The block structure remains the same.
 
 ---
 
@@ -264,10 +264,10 @@ A transformer block combines four operations:
 3. **Pre-norm** again: stabilize before feed-forward
 4. **Feed-forward** + **residual**: apply per-position transformation, add to stream
 
-Stack N of these, add an embedding layer at the front and an unembedding layer at the back, and you have a language model. The elegance is that this architecture scales cleanly — the same block design works from 100M to 100B parameters.
+Stack N of these, add an embedding layer at the front and an unembedding layer at the back, and you have a language model. The elegance is that this architecture scales cleanly - the same block design works from 100M to 100B parameters.
 
 ---
 
-*Next: [Pretraining — Why Predicting the Next Word Is Enough](./pretraining-next-token-prediction) — how the model learns to fill these layers with useful information.*
+*Next: [Pretraining - Why Predicting the Next Word Is Enough](./pretraining-next-token-prediction) - how the model learns to fill these layers with useful information.*
 
-*Previous: [Self-Attention from Scratch](./self-attention-from-scratch) — the attention mechanism this block wraps.*
+*Previous: [Self-Attention from Scratch](./self-attention-from-scratch) - the attention mechanism this block wraps.*
